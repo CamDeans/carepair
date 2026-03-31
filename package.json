@@ -4,6 +4,10 @@
   "version": "1.1.0",
   "scripts": {
     "build": "npm run typecheck && npm run lint",
+    "eas:preflight": "npm run typecheck && npm run expo:config:check && npx expo-doctor",
+    "expo:config:check": "expo config --type public",
+    "prebuild:android": "expo prebuild --platform android --clean",
+    "prebuild:ios": "expo prebuild --platform ios --clean",
     "eas:build": "eas build",
     "start": "cross-env EXPO_NO_DEPENDENCY_VALIDATION=1 expo start",
     "start:offline": "cross-env EXPO_NO_DEPENDENCY_VALIDATION=1 expo start --offline",

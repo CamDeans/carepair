@@ -13,6 +13,28 @@ Native **iOS** and **Android** app (Expo SDK 54, Expo Router). This folder is re
 
 ---
 
+## Before `eas build` (preflight)
+
+Run locally to catch TypeScript, config, and common Expo issues **before** spending EAS minutes:
+
+```bash
+npm run eas:preflight
+```
+
+This runs **`typecheck`**, **`expo config --type public`** (ensures `extra.eas.projectId` resolves — fixes [eas-config-mismatch](https://expo.fyi/eas-config-mismatch)), and **`expo-doctor`**.
+
+**Optional native sanity check** (generates `android/` / `ios/`; requires Android SDK and/or Xcode tooling):
+
+```bash
+npm run prebuild:android
+# macOS only:
+npm run prebuild:ios
+```
+
+The Expo project ID is set in **`app.config.ts`** and duplicated under each profile’s **`env`** in **`eas.json`** so cloud builds always see the correct UUID. Override with **`EAS_PROJECT_ID`** if you point at a different Expo project.
+
+---
+
 ## Option A — **Mobile-only** GitHub repo (typical for EAS)
 
 Use this when the GitHub remote should contain **only** the app (clean history, simple EAS ↔ GitHub integration).
@@ -30,15 +52,14 @@ Use this when the GitHub remote should contain **only** the app (clean history, 
    git push -u origin main
    ```
 
-3. **Link Expo / EAS** (creates or selects an Expo project and writes `EAS_PROJECT_ID` into your local env for builds):
+3. **Link Expo / EAS**
 
    ```bash
    eas login
    eas init
    ```
 
-   - If prompted, create a new project or link to an existing one with slug **`carepair`** (must match `app.config.ts` `slug` unless you change it).
-   - Set **`EAS_PROJECT_ID`** for EAS cloud builds: add it under **Project → Environment variables** (or **Secrets**) on [expo.dev](https://expo.dev) so `app.config.ts` can read it at build time, **or** rely on `eas init` updating your local `.env` / docs — see [Expo: Configure EAS Project ID](https://docs.expo.dev/eas/json/#easprojectid).
+   The repo already pins **`extra.eas.projectId`** to the **CarePair** Expo project. Use **`eas init`** only if you need to re-link the CLI; if you create a **new** Expo project, update **`EAS_PROJECT_ID_DEFAULT`** in `app.config.ts` and the **`EAS_PROJECT_ID`** entries in **`eas.json`** to match, or set **`EAS_PROJECT_ID`** in EAS environment variables.
 
 4. **Connect GitHub in the Expo dashboard** (optional but useful): Project → **GitHub** → install the Expo GitHub app and select this repo so builds can track commits/branches.
 

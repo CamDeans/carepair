@@ -2,6 +2,12 @@ import type { ExpoConfig } from 'expo/config';
 
 const APP_NAME = 'CarePair';
 
+/**
+ * Expo / EAS project UUID (expo.dev). Override with env `EAS_PROJECT_ID` for a different Expo project.
+ * Must match the project you run `eas build` against or EAS reports eas-config-mismatch.
+ */
+const EAS_PROJECT_ID_DEFAULT = '780ad853-e5b6-441d-985e-6f346ec16060';
+
 /** Injected at EAS Build / `expo prebuild` — do not use EXPO_PUBLIC_* (keeps keys out of the JS bundle). */
 const googleMapsIosKey = process.env.GOOGLE_MAPS_IOS_API_KEY ?? '';
 const googleMapsAndroidKey = process.env.GOOGLE_MAPS_ANDROID_API_KEY ?? '';
@@ -11,6 +17,8 @@ const config: ExpoConfig = {
   slug: 'carepair',
   version: '1.1.0',
   orientation: 'portrait',
+  /** Native app only — avoids web being treated as a release surface. */
+  platforms: ['ios', 'android'],
   icon: './assets/brand/app-icon.png',
   scheme: 'carepair',
   userInterfaceStyle: 'automatic',
@@ -68,7 +76,7 @@ const config: ExpoConfig = {
   },
   extra: {
     eas: {
-      projectId: process.env.EAS_PROJECT_ID ?? '00000000-0000-0000-0000-000000000000',
+      projectId: process.env.EAS_PROJECT_ID?.trim() || EAS_PROJECT_ID_DEFAULT,
     },
     stripeCustomerPortalUrl: process.env.EXPO_PUBLIC_STRIPE_PORTAL_URL ?? '',
     apiBaseUrl: process.env.EXPO_PUBLIC_API_URL ?? '',

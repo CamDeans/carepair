@@ -6,14 +6,23 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EAS_PROJECT_ID": "780ad853-e5b6-441d-985e-6f346ec16060"
+      }
     },
     "preview": {
       "distribution": "internal",
-      "android": { "buildType": "apk" }
+      "android": { "buildType": "apk" },
+      "env": {
+        "EAS_PROJECT_ID": "780ad853-e5b6-441d-985e-6f346ec16060"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EAS_PROJECT_ID": "780ad853-e5b6-441d-985e-6f346ec16060"
+      }
     }
   },
   "submit": {

@@ -27,6 +27,11 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Expo config (EAS projectId + schema)
+        env:
+          EXPO_PUBLIC_API_URL: https://ci.placeholder.invalid/api
+        run: npm run expo:config:check
+
       # expo lint may read env; placeholders avoid missing EXPO_PUBLIC_* in CI
       - name: Lint
         env:
