@@ -66,8 +66,9 @@ const config: ExpoConfig = {
       '@sentry/react-native/expo',
       {
         url: 'https://sentry.io/',
-        ...(process.env.SENTRY_ORG ? { organization: process.env.SENTRY_ORG } : {}),
-        ...(process.env.SENTRY_PROJECT ? { project: process.env.SENTRY_PROJECT } : {}),
+        // Keys must exist (even empty) or the plugin logs a warning; use env when you enable uploads.
+        organization: process.env.SENTRY_ORG ?? '',
+        project: process.env.SENTRY_PROJECT ?? '',
       },
     ],
   ],

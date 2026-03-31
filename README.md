@@ -33,6 +33,8 @@ npm run prebuild:ios
 
 The Expo project ID is set in **`app.config.ts`** and duplicated under each profile’s **`env`** in **`eas.json`** so cloud builds always see the correct UUID. Override with **`EAS_PROJECT_ID`** if you point at a different Expo project.
 
+**Sentry / EAS Android:** If `@sentry/react-native/expo` is enabled but **`SENTRY_ORG`** + **`SENTRY_AUTH_TOKEN`** are not set on EAS, release builds used to fail during `sentry-cli` source map upload. This repo sets **`SENTRY_DISABLE_AUTO_UPLOAD=true`** in **`eas.json`** so builds succeed; runtime reporting still works if **`EXPO_PUBLIC_SENTRY_DSN`** is set. To upload maps, add Sentry secrets and clear that flag (see **`.env.example`**).
+
 ---
 
 ## Option A — **Mobile-only** GitHub repo (typical for EAS)
