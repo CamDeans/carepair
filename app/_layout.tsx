@@ -1,58 +1,74 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+import '@/src/lib/sentryClient';
+
+import { ThemeProvider } from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { Fragment, useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { RootErrorBoundary } from '@/src/components/RootErrorBoundary';
+import { logEnvDiagnostics } from '@/src/lib/envDiagnostics';
+import { CarePairUiProvider, useCarePairUi } from '@/src/theme/CarePairUiContext';
+import { carePairDarkNavigationTheme, carePairLightNavigationTheme } from '@/src/theme/navigationTheme';
+import * as WebBrowser from 'expo-web-browser';
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
+WebBrowser.maybeCompleteAuthSession();
 
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
+export { RootErrorBoundary as ErrorBoundary };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
-  });
-
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+function SplashGate() {
+  const { fontsLoaded } = useCarePairUi();
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    if (fontsLoaded) {
+      void SplashScreen.hideAsync();
+      return;
     }
-  }, [loaded]);
+    const t = setTimeout(() => void SplashScreen.hideAsync(), 4000);
+    return () => clearTimeout(t);
+  }, [fontsLoaded]);
 
-  if (!loaded) {
-    return null;
-  }
-
-  return <RootLayoutNav />;
+  return null;
 }
+
+function RootLayout() {
+  useEffect(() => {
+    logEnvDiagnostics();
+  }, []);
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <Fragment>
+          <ReducedMotionConfig mode={ReduceMotion.System} />
+          <CarePairUiProvider>
+            <SplashGate />
+            <RootLayoutNav />
+          </CarePairUiProvider>
+        </Fragment>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+export default Sentry.wrap(RootLayout);
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+    <ThemeProvider
+      value={colorScheme === 'dark' ? carePairDarkNavigationTheme : carePairLightNavigationTheme}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(guest)" />
+        <Stack.Screen name="(main)" />
       </Stack>
     </ThemeProvider>
   );

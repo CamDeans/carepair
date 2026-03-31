@@ -1,19 +1,21 @@
-const tintColorLight = '#2f95dc';
-const tintColorDark = '#fff';
+/**
+ * Legacy hook for `components/Themed.tsx` (Expo template). Aligned with `src/theme/tokens.ts`.
+ */
+import { colors, darkColors } from '@/src/theme/tokens';
 
 export default {
   light: {
-    text: '#000',
-    background: '#fff',
-    tint: tintColorLight,
-    tabIconDefault: '#ccc',
-    tabIconSelected: tintColorLight,
+    text: colors.text,
+    background: colors.background,
+    tint: colors.primary,
+    tabIconDefault: colors.textSubtle,
+    tabIconSelected: colors.primary,
   },
   dark: {
-    text: '#fff',
-    background: '#000',
-    tint: tintColorDark,
-    tabIconDefault: '#ccc',
-    tabIconSelected: tintColorDark,
+    text: darkColors.text,
+    background: darkColors.background,
+    tint: darkColors.primaryMid,
+    tabIconDefault: darkColors.textSubtle,
+    tabIconSelected: darkColors.primaryMid,
   },
 };
