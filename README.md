@@ -35,6 +35,17 @@ The Expo project ID is set in **`app.config.ts`** and duplicated under each prof
 
 **Sentry / EAS Android:** If `@sentry/react-native/expo` is enabled but **`SENTRY_ORG`** + **`SENTRY_AUTH_TOKEN`** are not set on EAS, release builds used to fail during `sentry-cli` source map upload. This repo sets **`SENTRY_DISABLE_AUTO_UPLOAD=true`** in **`eas.json`** so builds succeed; runtime reporting still works if **`EXPO_PUBLIC_SENTRY_DSN`** is set. To upload maps, add Sentry secrets and clear that flag (see **`.env.example`**).
 
+**First iOS build — credentials (non-interactive failure):** If EAS reports *Distribution Certificate is not validated for non-interactive builds* / *Credentials are not set up*, Apple’s distribution cert must be created or confirmed **once** in an interactive session (EAS cannot finish that step from a headless GitHub build the first time). From **`mobile/`**, run:
+
+```bash
+eas login
+eas credentials
+```
+
+Choose **iOS** → your bundle id **`com.carepair.app`** → generate or assign a **Distribution** certificate and **App Store** provisioning profile, and complete any Apple ID / 2FA prompts. Alternatively run **`eas build --platform ios --profile production`** locally once and answer the credential wizard. After credentials exist and are validated on Expo’s servers, **cloud / CI iOS builds** can proceed. For fully automated CI long-term, configure an [App Store Connect API key](https://docs.expo.dev/submit/ios/#app-store-connect-api-key) for your Expo account as documented by Expo.
+
+**Export compliance:** `app.config.ts` sets **`ITSAppUsesNonExemptEncryption: false`** in `ios.infoPlist` (typical for HTTPS-only apps). If you add custom non-exempt cryptography, set **`true`** and handle compliance in App Store Connect.
+
 ---
 
 ## Option A — **Mobile-only** GitHub repo (typical for EAS)

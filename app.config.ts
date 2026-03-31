@@ -35,6 +35,8 @@ const config: ExpoConfig = {
       ? { config: { googleMapsApiKey: googleMapsIosKey } }
       : {}),
     infoPlist: {
+      // Standard HTTPS only → false avoids extra App Store Connect export questions.
+      ITSAppUsesNonExemptEncryption: false,
       NSPhotoLibraryUsageDescription:
         'CarePair uses your photo library so you can add a profile picture.',
       NSCameraUsageDescription:
