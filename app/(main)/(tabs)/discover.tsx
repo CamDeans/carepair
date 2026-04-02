@@ -12,64 +12,60 @@ import type { DiscoverCardDto } from '@/src/lib/serverApi';
 import * as api from '@/src/lib/serverApi';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { radius, spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, radius, spacing } from '@/src/theme/tokens';
 
 export default function DiscoverScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        h1: {
-          fontSize: 28,
-          fontWeight: '600',
-          color: c.text,
-          fontFamily: f.semibold,
-          letterSpacing: -0.56,
-        },
-        sub: {
-          fontSize: 14,
-          color: c.textSecondary,
-          marginVertical: spacing.sm,
-          lineHeight: 20,
-          fontFamily: f.regular,
-        },
-        mapWrap: { height: 180, borderRadius: radius.md, overflow: 'hidden', marginBottom: spacing.md },
-        map: { flex: 1 },
-        mapPh: {
-          flex: 1,
-          textAlign: 'center',
-          padding: spacing.lg,
-          color: c.textSecondary,
-          fontFamily: f.regular,
-        },
-        mapsHint: {
-          fontSize: 12,
-          color: c.textSecondary,
-          marginBottom: spacing.sm,
-          lineHeight: 18,
-          fontFamily: f.regular,
-        },
-        label: {
-          fontSize: 14,
-          fontWeight: '600',
-          color: c.text,
-          marginBottom: spacing.xs,
-          fontFamily: f.semibold,
-        },
-        input: {
-          borderWidth: 1,
-          borderColor: c.border,
-          borderRadius: radius.sm,
-          padding: spacing.sm,
-          marginBottom: spacing.sm,
-          backgroundColor: c.surface,
-          color: c.text,
-          fontFamily: f.regular,
-        },
-        actions: { flexDirection: 'row', gap: spacing.sm, marginVertical: spacing.md, flexWrap: 'wrap' },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      h1: { ...t.screenTitle, marginBottom: spacing.xs },
+      sub: { ...t.caption, marginBottom: layout.sectionGap - spacing.xs },
+      mapWrap: {
+        height: 192,
+        borderRadius: radius.lg,
+        overflow: 'hidden',
+        marginBottom: spacing.md,
+        borderWidth: 1,
+        borderColor: c.border,
+      },
+      map: { flex: 1 },
+      mapPh: {
+        flex: 1,
+        textAlign: 'center',
+        padding: spacing.lg,
+        ...t.caption,
+        lineHeight: 20,
+      },
+      mapsHint: {
+        ...t.caption,
+        fontSize: 13,
+        marginBottom: spacing.sm,
+      },
+      label: { ...t.label, marginBottom: spacing.xs },
+      input: {
+        borderWidth: 1,
+        borderColor: c.borderStrong,
+        borderRadius: radius.md,
+        paddingHorizontal: spacing.md,
+        paddingVertical: 14,
+        marginBottom: spacing.md,
+        backgroundColor: c.surface,
+        color: c.text,
+        fontSize: 16,
+        minHeight: 48,
+        fontFamily: f.regular,
+      },
+      actions: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+        marginTop: spacing.md,
+        marginBottom: spacing.sm,
+        flexWrap: 'wrap',
+      },
+    });
+  }, [c, f]);
 
   const maps = useMemo(() => getReactNativeMaps(), []);
   const MapView = maps?.default;
@@ -164,7 +160,7 @@ export default function DiscoverScreen() {
           </MapView>
         ) : coords && !MapView ? (
           <Text style={styles.mapPh}>
-            Map preview is unavailable in Expo Go. Use a development build for the map, or keep swiping — discovery still works.
+            Map preview needs native maps (EAS production or development build). Swiping and discovery still work without the map.
           </Text>
         ) : (
           <Text style={styles.mapPh}>Waiting for location…</Text>

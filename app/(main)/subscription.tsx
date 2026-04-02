@@ -11,7 +11,8 @@ import * as api from '@/src/lib/serverApi';
 import type { CareAccessDto } from '@/src/lib/serverApi';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, radius, spacing } from '@/src/theme/tokens';
 
 export default function SubscriptionScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
@@ -20,31 +21,24 @@ export default function SubscriptionScreen() {
   const [access, setAccess] = useState<CareAccessDto | null>(null);
   const [opening, setOpening] = useState(false);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        h1: { fontSize: 24, fontWeight: '800', color: c.text, fontFamily: f.semibold },
-        price: { fontSize: 20, fontWeight: '700', color: c.primaryDark, marginTop: spacing.sm, fontFamily: f.semibold },
-        sub: {
-          fontSize: 15,
-          color: c.textSecondary,
-          lineHeight: 22,
-          marginVertical: spacing.md,
-          fontFamily: f.regular,
-        },
-        box: {
-          padding: spacing.md,
-          backgroundColor: c.surface,
-          borderRadius: 12,
-          borderWidth: 1,
-          borderColor: c.border,
-          marginBottom: spacing.md,
-        },
-        row: { fontSize: 15, color: c.text, marginBottom: spacing.xs, fontFamily: f.regular },
-        legal: { fontSize: 12, color: c.textSecondary, marginTop: spacing.lg, lineHeight: 18, fontFamily: f.regular },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      h1: { ...t.sectionTitle, fontSize: 24, lineHeight: 28 },
+      price: { ...t.sectionTitle, fontSize: 20, lineHeight: 26, color: c.primaryDark, marginTop: spacing.sm },
+      sub: { ...t.sub, marginVertical: spacing.md },
+      box: {
+        padding: spacing.lg,
+        backgroundColor: c.surface,
+        borderRadius: radius.lg,
+        borderWidth: 1,
+        borderColor: c.border,
+        marginBottom: spacing.md,
+      },
+      row: { ...t.sub, color: c.text, marginBottom: spacing.xs },
+      legal: { ...t.caption, fontSize: 12, lineHeight: 18, marginTop: spacing.lg },
+    });
+  }, [c, f]);
 
   useFocusEffect(
     useCallback(() => {

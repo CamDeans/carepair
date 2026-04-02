@@ -6,27 +6,21 @@ import { Screen } from '@/src/components/ui/Screen';
 import { TextField } from '@/src/components/ui/TextField';
 import { emailSchema, formatZodError } from '@/src/lib/validation';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, spacing } from '@/src/theme/tokens';
 
 export default function ForgotPasswordScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        h1: {
-          fontSize: 24,
-          fontWeight: '800',
-          color: c.text,
-          marginBottom: spacing.sm,
-          fontFamily: f.semibold,
-        },
-        sub: { fontSize: 15, color: c.textSecondary, marginBottom: spacing.lg, fontFamily: f.regular },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      h1: { ...t.sectionTitle, fontSize: 24, lineHeight: 28, marginBottom: spacing.sm },
+      sub: { ...t.sub, marginBottom: layout.sectionGap },
+    });
+  }, [c, f]);
 
   const submit = () => {
     const v = emailSchema.safeParse(email);

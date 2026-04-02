@@ -6,8 +6,10 @@ import { BrandLogo } from '@/src/components/BrandLogo';
 import { Button } from '@/src/components/ui/Button';
 import { Screen } from '@/src/components/ui/Screen';
 import { useAuthStore } from '@/src/store/authStore';
+import { ImagePlaceholder } from '@/src/components/ui/ImagePlaceholder';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, radius, spacing } from '@/src/theme/tokens';
 
 const SLIDES = [
   {
@@ -31,25 +33,31 @@ export default function OnboardingScreen() {
   const setSeen = useAuthStore((s) => s.setHasSeenOnboarding);
   const { colors: c, fonts: f } = useCarePairUi();
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        brandRow: { alignItems: 'center', paddingTop: spacing.lg, paddingBottom: spacing.sm },
-        slide: { paddingTop: spacing.xl, paddingHorizontal: spacing.md },
-        title: {
-          fontSize: 26,
-          fontWeight: '800',
-          color: c.text,
-          marginBottom: spacing.md,
-          fontFamily: f.semibold,
-        },
-        body: { fontSize: 16, lineHeight: 24, color: c.textSecondary, fontFamily: f.regular },
-        dots: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginVertical: spacing.lg },
-        dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: c.border },
-        dotOn: { backgroundColor: c.primary, width: 22 },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      brandRow: { alignItems: 'center', paddingTop: spacing.lg, paddingBottom: spacing.sm },
+      slide: { paddingTop: spacing.xl, paddingHorizontal: layout.screenPaddingX },
+      visualSlot: {
+        alignSelf: 'center',
+        width: '100%',
+        maxWidth: 320,
+        height: 180,
+        marginBottom: layout.sectionGap - spacing.sm,
+        borderRadius: radius.lg,
+      },
+      title: {
+        ...t.sectionTitle,
+        fontSize: 26,
+        lineHeight: 30,
+        marginBottom: spacing.md,
+      },
+      body: { ...t.bodySecondary },
+      dots: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginVertical: spacing.lg },
+      dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: c.border },
+      dotOn: { backgroundColor: c.primary, width: 22 },
+    });
+  }, [c, f]);
 
   const goAuth = () => {
     setSeen(true);
@@ -74,6 +82,10 @@ export default function OnboardingScreen() {
         }}
         renderItem={({ item }) => (
           <View style={[styles.slide, { width }]}>
+            <ImagePlaceholder
+              style={styles.visualSlot}
+              accessibilityLabel={`Visual for ${item.title}`}
+            />
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.body}>{item.body}</Text>
           </View>

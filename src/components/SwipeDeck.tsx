@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -8,9 +8,11 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 
+import { ProfilePhoto } from '@/src/components/ui/ProfilePhoto';
 import type { DiscoverCardDto } from '@/src/lib/serverApi';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { radius, spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, radius, spacing } from '@/src/theme/tokens';
 
 const SW = Dimensions.get('window').width;
 const THRESHOLD = SW * 0.25;
@@ -26,63 +28,39 @@ export function SwipeDeck({ card, onSwipeLeft, onSwipeRight }: Props) {
   const tx = useSharedValue(0);
   const ty = useSharedValue(0);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        card: {
-          backgroundColor: c.surface,
-          borderRadius: radius.lg,
-          padding: spacing.md,
-          borderWidth: 1,
-          borderColor: c.border,
-          minHeight: 360,
-          width: SW - spacing.md * 4,
-          alignSelf: 'center',
-          shadowColor: c.shadowInk,
-          shadowOpacity: 0.12,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: 4 },
-          elevation: 4,
-        },
-        photo: { width: '100%', height: 200, borderRadius: radius.md, marginBottom: spacing.md },
-        photoPh: { backgroundColor: c.primaryMuted, alignItems: 'center', justifyContent: 'center' },
-        ph: {
-          fontSize: 64,
-          fontWeight: '600',
-          color: c.primaryDark,
-          fontFamily: f.semibold,
-        },
-        name: {
-          fontSize: 22,
-          fontWeight: '600',
-          color: c.text,
-          fontFamily: f.semibold,
-        },
-        city: { fontSize: 15, color: c.textSecondary, marginTop: 4, fontFamily: f.regular },
-        snippet: {
-          fontSize: 15,
-          color: c.text,
-          marginTop: spacing.sm,
-          lineHeight: 22,
-          fontFamily: f.regular,
-        },
-        meta: {
-          marginTop: spacing.sm,
-          fontWeight: '600',
-          color: c.primaryDark,
-          fontFamily: f.semibold,
-        },
-        empty: { padding: spacing.lg, alignItems: 'center' },
-        emptyText: {
-          textAlign: 'center',
-          color: c.textSecondary,
-          fontSize: 16,
-          lineHeight: 24,
-          fontFamily: f.regular,
-        },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      card: {
+        backgroundColor: c.surface,
+        borderRadius: radius.lg,
+        padding: spacing.lg,
+        borderWidth: 1,
+        borderColor: c.border,
+        minHeight: 360,
+        alignSelf: 'stretch',
+        shadowColor: c.shadowInk,
+        shadowOpacity: 0.1,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 4,
+      },
+      photo: { width: '100%', height: 208, borderRadius: radius.lg, marginBottom: layout.sectionGap - spacing.sm },
+      name: { ...t.sectionTitle, fontSize: 22, lineHeight: 28 },
+      city: { ...t.sub, marginTop: spacing.xs },
+      distance: { ...t.caption, marginTop: 2, fontSize: 13 },
+      snippet: { ...t.sub, color: c.text, marginTop: spacing.sm },
+      meta: {
+        ...t.caption,
+        marginTop: spacing.sm,
+        fontWeight: '600',
+        color: c.primaryDark,
+        fontFamily: f.semibold,
+      },
+      empty: { padding: spacing.lg, alignItems: 'center' },
+      emptyText: { ...t.bodySecondary, textAlign: 'center' },
+    });
+  }, [c, f]);
 
   const gesture = Gesture.Pan()
     .onUpdate((e) => {
@@ -117,15 +95,16 @@ export function SwipeDeck({ card, onSwipeLeft, onSwipeRight }: Props) {
   return (
     <GestureDetector gesture={gesture}>
       <Animated.View style={[styles.card, style]}>
-        {card.photoUri ? (
-          <Image source={{ uri: card.photoUri }} style={styles.photo} />
-        ) : (
-          <View style={[styles.photo, styles.photoPh]}>
-            <Text style={styles.ph}>{(card.displayName ?? '?').slice(0, 1)}</Text>
-          </View>
-        )}
+        <ProfilePhoto
+          uri={card.photoUri}
+          style={styles.photo}
+          accessibilityLabel={`${card.displayName ?? 'Member'} profile photo`}
+        />
         <Text style={styles.name}>{card.displayName ?? 'Member'}</Text>
         <Text style={styles.city}>{card.city ?? ''}</Text>
+        {card.distanceKm != null ? (
+          <Text style={styles.distance}>{card.distanceKm} km away</Text>
+        ) : null}
         <Text style={styles.snippet} numberOfLines={3}>
           {card.snippet}
         </Text>

@@ -2,52 +2,40 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { ProfilePhoto } from '@/src/components/ui/ProfilePhoto';
 import { Screen } from '@/src/components/ui/Screen';
 import * as api from '@/src/lib/serverApi';
 import { useInboxUnreadStore } from '@/src/store/inboxUnreadStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { radius, spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, radius, spacing } from '@/src/theme/tokens';
 
 export default function MessagesScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
   const [rows, setRows] = useState<api.ConversationRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        h1: {
-          fontSize: 28,
-          fontWeight: '800',
-          color: c.text,
-          marginBottom: spacing.md,
-          fontFamily: f.semibold,
-        },
-        empty: { fontSize: 15, color: c.textSecondary, lineHeight: 22, fontFamily: f.regular },
-        row: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingVertical: spacing.md,
-          borderBottomWidth: 1,
-          borderBottomColor: c.border,
-          gap: spacing.md,
-        },
-        avatar: {
-          width: 48,
-          height: 48,
-          borderRadius: radius.md,
-          backgroundColor: c.primaryMuted,
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-        avatarText: { fontSize: 18, fontWeight: '700', color: c.primaryDark, fontFamily: f.semibold },
-        body: { flex: 1 },
-        name: { fontSize: 16, fontWeight: '700', color: c.text, fontFamily: f.semibold },
-        preview: { fontSize: 14, color: c.textSecondary, marginTop: 2, fontFamily: f.regular },
-        dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: c.accent },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      h1: { ...t.screenTitle, marginBottom: layout.sectionGap - spacing.sm },
+      empty: { ...t.bodySecondary },
+      row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        minHeight: layout.listRowMinHeight,
+        paddingVertical: spacing.sm,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: c.border,
+        gap: spacing.md,
+      },
+      avatar: { width: 48, height: 48, borderRadius: radius.md },
+      body: { flex: 1, minWidth: 0 },
+      name: { ...t.body, fontWeight: '600', fontFamily: f.semibold },
+      preview: { ...t.caption, marginTop: 2 },
+      dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: c.accent },
+    });
+  }, [c, f]);
 
   useFocusEffect(
     useCallback(() => {
@@ -83,9 +71,11 @@ export default function MessagesScreen() {
           accessibilityRole="button"
           accessibilityLabel={`${t.unread ? 'Unread. ' : ''}Open conversation with ${t.peerName}`}
           onPress={() => router.push(`/conversation/${t.id}`)}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{t.peerName.slice(0, 1)}</Text>
-          </View>
+          <ProfilePhoto
+            uri={t.peerPhotoUri}
+            style={styles.avatar}
+            accessibilityLabel={`${t.peerName} profile photo`}
+          />
           <View style={styles.body}>
             <Text style={styles.name}>{t.peerName}</Text>
             <Text style={styles.preview} numberOfLines={1}>

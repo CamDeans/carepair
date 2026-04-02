@@ -5,12 +5,13 @@ import { useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/src/components/ui/Button';
+import { PhotoSlotsRow } from '@/src/components/ui/PhotoSlotsRow';
 import { Screen } from '@/src/components/ui/Screen';
 import { TextField } from '@/src/components/ui/TextField';
 import * as api from '@/src/lib/serverApi';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { radius, spacing } from '@/src/theme/tokens';
 
 const STEPS = ['Household', 'Children & pets', 'Care needs', 'Photos & documents', 'Location', 'Review'] as const;
 
@@ -119,7 +120,8 @@ export default function FamilySetupScreen() {
       }
       const pos = await Location.getCurrentPositionAsync({});
       const r = parseFloat(radiusKm) || 25;
-      await api.profileLocation(pos.coords.longitude, pos.coords.latitude, r);
+      const calendarTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      await api.profileLocation(pos.coords.longitude, pos.coords.latitude, r, calendarTimeZone);
       await api.profilePublish();
       await refreshMe();
       router.replace('/');
@@ -190,9 +192,14 @@ export default function FamilySetupScreen() {
 
       {step === 3 && (
         <>
-          <Text style={styles.h}>Profile photos ({photoUrls.length})</Text>
+          <Text style={styles.h}>Profile photos</Text>
+          <Text style={styles.p}>
+            Add your own photos — at least one is required to publish. Empty dashed slots show where more can go.
+          </Text>
+          <PhotoSlotsRow urls={photoUrls} maxSlots={4} slotSize={76} borderRadius={radius.md} />
           <Button title="Add photo" onPress={() => void pickAndUpload('photo')} />
-          <Text style={styles.h}>Supporting documents ({docUrls.length}) — PDF/screenshots via image</Text>
+          <Text style={[styles.h, { marginTop: spacing.lg }]}>Supporting documents ({docUrls.length})</Text>
+          <Text style={styles.p}>PDF or screenshots via image upload.</Text>
           <Button title="Add document image" variant="secondary" onPress={() => void pickAndUpload('doc')} />
         </>
       )}

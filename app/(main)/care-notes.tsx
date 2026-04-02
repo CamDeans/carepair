@@ -9,7 +9,8 @@ import * as api from '@/src/lib/serverApi';
 import { careNoteBodySchema, formatZodError } from '@/src/lib/validation';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, radius, spacing } from '@/src/theme/tokens';
 
 export default function CareNotesScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
@@ -21,35 +22,34 @@ export default function CareNotesScreen() {
   const [body, setBody] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        h1: { fontSize: 22, fontWeight: '800', color: c.text, fontFamily: f.semibold },
-        sub: { fontSize: 14, color: c.textSecondary, marginBottom: spacing.md, fontFamily: f.regular },
-        label: { fontWeight: '700', color: c.text, marginBottom: spacing.xs, fontFamily: f.semibold },
-        pick: {
-          padding: spacing.md,
-          borderRadius: 12,
-          borderWidth: 1,
-          borderColor: c.border,
-          marginBottom: spacing.sm,
-        },
-        pickOn: { borderColor: c.primary, backgroundColor: c.primaryMuted },
-        pickText: { color: c.text, fontFamily: f.regular },
-        hint: { color: c.textSecondary, marginBottom: spacing.md, fontFamily: f.regular },
-        note: {
-          padding: spacing.md,
-          borderRadius: 12,
-          backgroundColor: c.surface,
-          borderWidth: 1,
-          borderColor: c.border,
-          marginBottom: spacing.sm,
-        },
-        meta: { fontSize: 12, fontWeight: '700', color: c.primaryDark, marginBottom: spacing.xs, fontFamily: f.semibold },
-        noteBody: { fontSize: 15, color: c.text, lineHeight: 22, fontFamily: f.regular },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      h1: { ...t.sectionTitle },
+      sub: { ...t.caption, marginBottom: spacing.md },
+      label: { ...t.label, marginBottom: spacing.xs },
+      pick: {
+        padding: spacing.md,
+        borderRadius: radius.lg,
+        borderWidth: 1,
+        borderColor: c.border,
+        marginBottom: spacing.sm,
+      },
+      pickOn: { borderColor: c.primary, backgroundColor: c.primaryMuted },
+      pickText: { ...t.body },
+      hint: { ...t.caption, marginBottom: layout.sectionGap - spacing.sm },
+      note: {
+        padding: spacing.lg,
+        borderRadius: radius.lg,
+        backgroundColor: c.surface,
+        borderWidth: 1,
+        borderColor: c.border,
+        marginBottom: spacing.sm,
+      },
+      meta: { ...t.caption, fontSize: 12, fontWeight: '600', color: c.primaryDark, marginBottom: spacing.xs, fontFamily: f.semibold },
+      noteBody: { ...t.sub, color: c.text },
+    });
+  }, [c, f]);
 
   const otherRole: 'family' | 'caregiver' = myRole === 'family' ? 'caregiver' : 'family';
 

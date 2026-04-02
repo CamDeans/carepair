@@ -9,7 +9,8 @@ import { getChatSocket } from '@/src/lib/socket';
 import { useAuthStore } from '@/src/store/authStore';
 import { useInboxUnreadStore } from '@/src/store/inboxUnreadStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { radius, spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, radius, spacing } from '@/src/theme/tokens';
 
 type Row = { id: string; senderId: string; body: string; createdAt: string };
 
@@ -23,31 +24,36 @@ export default function ConversationScreen() {
   const listRef = useRef<FlatList>(null);
   const seenIds = useRef(new Set<string>());
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        flex: { flex: 1, backgroundColor: c.background },
-        center: { padding: spacing.lg },
-        list: { padding: spacing.md, paddingBottom: spacing.lg },
-        bubble: {
-          maxWidth: '85%',
-          padding: spacing.md,
-          borderRadius: radius.md,
-          marginBottom: spacing.sm,
-        },
-        them: { alignSelf: 'flex-start', backgroundColor: c.surface, borderWidth: 1, borderColor: c.border },
-        me: { alignSelf: 'flex-end', backgroundColor: c.primary },
-        bubbleText: { fontSize: 16, color: c.text, fontFamily: f.regular },
-        meText: { color: c.onPrimary, fontFamily: f.regular },
-        composer: {
-          padding: spacing.md,
-          borderTopWidth: 1,
-          borderTopColor: c.border,
-          backgroundColor: c.surface,
-        },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      flex: { flex: 1, backgroundColor: c.background },
+      center: { padding: spacing.lg },
+      list: {
+        paddingHorizontal: layout.screenPaddingX,
+        paddingTop: layout.screenPaddingY,
+        paddingBottom: spacing.xl,
+      },
+      bubble: {
+        maxWidth: '85%',
+        paddingVertical: spacing.sm + 2,
+        paddingHorizontal: spacing.md,
+        borderRadius: radius.lg,
+        marginBottom: spacing.sm,
+      },
+      them: { alignSelf: 'flex-start', backgroundColor: c.surface, borderWidth: 1, borderColor: c.border },
+      me: { alignSelf: 'flex-end', backgroundColor: c.primary },
+      bubbleText: { ...t.body },
+      meText: { color: c.onPrimary, fontFamily: f.regular },
+      composer: {
+        paddingHorizontal: layout.screenPaddingX,
+        paddingVertical: layout.screenPaddingY,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: c.border,
+        backgroundColor: c.surface,
+      },
+    });
+  }, [c, f]);
 
   const appendUnique = useCallback((m: Row) => {
     if (seenIds.current.has(m.id)) return;

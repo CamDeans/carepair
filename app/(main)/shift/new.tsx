@@ -9,7 +9,8 @@ import { TextField } from '@/src/components/ui/TextField';
 import * as api from '@/src/lib/serverApi';
 import { formatZodError, isoDateSchema, timeHmSchema } from '@/src/lib/validation';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, radius, spacing } from '@/src/theme/tokens';
 
 const shiftDraftSchema = z
   .object({
@@ -30,24 +31,23 @@ export default function NewShiftScreen() {
   const [endTime, setEndTime] = useState('19:00');
   const [notes, setNotes] = useState('');
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        h1: { fontSize: 22, fontWeight: '800', color: c.text, marginBottom: spacing.md, fontFamily: f.semibold },
-        label: { fontWeight: '700', color: c.text, marginBottom: spacing.xs, fontFamily: f.semibold },
-        pick: {
-          padding: spacing.md,
-          borderRadius: 12,
-          borderWidth: 1,
-          borderColor: c.border,
-          marginBottom: spacing.sm,
-        },
-        pickOn: { borderColor: c.primary, backgroundColor: c.primaryMuted },
-        pickText: { color: c.text, fontFamily: f.regular },
-        hint: { color: c.textSecondary, marginBottom: spacing.md, fontFamily: f.regular },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      h1: { ...t.sectionTitle, marginBottom: layout.sectionGap - spacing.sm },
+      label: { ...t.label, marginBottom: spacing.xs },
+      pick: {
+        padding: spacing.md,
+        borderRadius: radius.lg,
+        borderWidth: 1,
+        borderColor: c.border,
+        marginBottom: spacing.sm,
+      },
+      pickOn: { borderColor: c.primary, backgroundColor: c.primaryMuted },
+      pickText: { ...t.body },
+      hint: { ...t.caption, marginBottom: spacing.md },
+    });
+  }, [c, f]);
 
   useEffect(() => {
     if (paramCg) setCaregiverUserId(paramCg);

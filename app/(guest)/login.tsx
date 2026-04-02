@@ -8,31 +8,19 @@ import { Screen } from '@/src/components/ui/Screen';
 import { TextField } from '@/src/components/ui/TextField';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, spacing } from '@/src/theme/tokens';
 
 export default function LoginScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        h1: {
-          fontSize: 28,
-          fontWeight: '600',
-          color: c.text,
-          marginBottom: spacing.sm,
-          letterSpacing: -0.56,
-          fontFamily: f.semibold,
-        },
-        sub: { fontSize: 14, color: c.textSecondary, marginBottom: spacing.lg, fontFamily: f.regular },
-        link: {
-          color: c.primary,
-          fontWeight: '500',
-          marginBottom: spacing.md,
-          fontFamily: f.medium,
-        },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      h1: { ...t.screenTitle, marginBottom: spacing.sm },
+      sub: { ...t.caption, marginBottom: layout.sectionGap },
+      link: { ...t.link, marginBottom: spacing.md },
+    });
+  }, [c, f]);
 
   const login = useAuthStore((s) => s.login);
   const [email, setEmail] = useState('');

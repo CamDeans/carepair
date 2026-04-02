@@ -11,7 +11,8 @@ import * as api from '@/src/lib/serverApi';
 import type { CareAccessDto, MatchPeer, ShiftDto } from '@/src/lib/serverApi';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, spacing } from '@/src/theme/tokens';
 
 const HISTORY_CAP = 25;
 
@@ -112,43 +113,41 @@ export default function CareSpaceScreen() {
     () => ({ todayTextColor: c.primary, selectedDayBackgroundColor: c.primary }),
     [c.primary],
   );
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        h1: { fontSize: 28, fontWeight: '800', color: c.text, fontFamily: f.semibold },
-        sub: { fontSize: 15, color: c.textSecondary, marginVertical: spacing.md, fontFamily: f.regular },
-        card: { marginBottom: spacing.md },
-        emptyUpcoming: { fontSize: 15, color: c.textSecondary, marginBottom: spacing.md, fontFamily: f.regular },
-        cardTitle: { fontSize: 14, fontWeight: '700', color: c.primaryDark, fontFamily: f.semibold },
-        cardBody: { fontSize: 16, color: c.text, marginTop: spacing.xs, fontFamily: f.regular },
-        cardMuted: { fontSize: 14, color: c.textSecondary, marginTop: spacing.sm, fontFamily: f.regular },
-        badge: { marginTop: spacing.sm, fontWeight: '600', color: c.text, fontFamily: f.semibold },
-        listBlock: { marginTop: spacing.lg },
-        sectionTitle: {
-          fontSize: 15,
-          fontWeight: '700',
-          color: c.primaryDark,
-          marginBottom: spacing.sm,
-          fontFamily: f.semibold,
-        },
-        historyRow: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingVertical: spacing.md,
-          paddingHorizontal: spacing.sm,
-          borderBottomWidth: 1,
-          borderBottomColor: c.border,
-          backgroundColor: c.surface,
-        },
-        historyMain: { flex: 1, marginRight: spacing.sm },
-        historyDate: { fontSize: 15, fontWeight: '600', color: c.text, fontFamily: f.semibold },
-        historyNotes: { fontSize: 13, color: c.textSecondary, marginTop: 2, fontFamily: f.regular },
-        historyStatus: { fontSize: 13, fontWeight: '600', color: c.textSecondary, fontFamily: f.semibold },
-        notePreview: { marginTop: spacing.lg },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      h1: { ...t.screenTitle, marginBottom: spacing.xs },
+      sub: { ...t.sub, marginVertical: layout.sectionGap - spacing.sm },
+      card: { marginBottom: spacing.md },
+      emptyUpcoming: { ...t.bodySecondary, marginBottom: spacing.md },
+      cardTitle: { ...t.label, color: c.primaryDark },
+      cardBody: { ...t.body, marginTop: spacing.xs },
+      cardMuted: { ...t.caption, marginTop: spacing.sm },
+      badge: { ...t.caption, marginTop: spacing.sm, fontWeight: '600', color: c.text, fontFamily: f.semibold },
+      listBlock: { marginTop: spacing.lg },
+      sectionTitle: {
+        ...t.label,
+        color: c.primaryDark,
+        marginBottom: spacing.sm,
+      },
+      historyRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: layout.listRowMinHeight,
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: c.border,
+        backgroundColor: c.surface,
+      },
+      historyMain: { flex: 1, marginRight: spacing.sm, minWidth: 0 },
+      historyDate: { ...t.sub, fontWeight: '600', color: c.text, fontFamily: f.semibold },
+      historyNotes: { ...t.caption, fontSize: 13, marginTop: 2 },
+      historyStatus: { ...t.caption, fontSize: 13, fontWeight: '600', fontFamily: f.semibold },
+      notePreview: { marginTop: spacing.lg },
+    });
+  }, [c, f]);
   const defaultCaregiverId = matches.find((m) => m.role === 'caregiver')?.id;
 
   if (loading && !access) {

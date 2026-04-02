@@ -3,27 +3,35 @@ import { useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text } from 'react-native';
 
 import { Button } from '@/src/components/ui/Button';
+import { ImagePlaceholder } from '@/src/components/ui/ImagePlaceholder';
 import { Screen } from '@/src/components/ui/Screen';
 import { TextField } from '@/src/components/ui/TextField';
 import * as api from '@/src/lib/serverApi';
 import { connectionIntroSchema, formatZodError } from '@/src/lib/validation';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, radius, spacing } from '@/src/theme/tokens';
 
 export default function ConnectionRequestScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
   const { peerName, peerId } = useLocalSearchParams<{ peerName?: string; peerId?: string }>();
   const [intro, setIntro] = useState('');
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        h1: { fontSize: 22, fontWeight: '800', color: c.text, fontFamily: f.semibold },
-        sub: { fontSize: 15, color: c.textSecondary, marginVertical: spacing.md, fontFamily: f.regular },
-        sub2: { fontSize: 14, color: c.textSecondary, marginBottom: spacing.md, fontFamily: f.regular },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      h1: { ...t.sectionTitle },
+      sub: { ...t.sub, marginVertical: spacing.md },
+      sub2: { ...t.caption, marginBottom: spacing.md },
+      peerVisual: {
+        width: 96,
+        height: 96,
+        borderRadius: radius.lg,
+        marginBottom: layout.sectionGap - spacing.sm,
+        alignSelf: 'center',
+      },
+    });
+  }, [c, f]);
 
   const send = async () => {
     const v = connectionIntroSchema.safeParse(intro);
@@ -47,6 +55,10 @@ export default function ConnectionRequestScreen() {
   return (
     <Screen scroll>
       <Text style={styles.h1}>Connection request</Text>
+      <ImagePlaceholder
+        style={styles.peerVisual}
+        accessibilityLabel={`${peerName ?? 'Match'} profile photo placeholder`}
+      />
       <Text style={styles.sub}>
         To: {peerName ?? 'Match'} {peerId ? `(#${peerId})` : ''}
       </Text>

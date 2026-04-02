@@ -38,7 +38,7 @@ export function Button({
     const labelBase = {
       fontSize: 15,
       fontWeight: '500' as const,
-      lineHeight: 18,
+      lineHeight: 22,
       fontFamily: f.medium,
     };
     return StyleSheet.create({

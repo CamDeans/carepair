@@ -77,6 +77,19 @@ export const spacing = {
   xl: 32,
 } as const;
 
+/**
+ * Screen chrome — use with `Screen` and stack content so padding stays consistent app-wide.
+ * Horizontal 20px hits a comfortable reading margin on phones (spec base is 16px body; edges slightly wider).
+ */
+export const layout = {
+  screenPaddingX: 20,
+  screenPaddingY: 16,
+  /** Vertical gap between major sections (title block → content → actions). */
+  sectionGap: 24,
+  /** Minimum list row height for primary touch targets (WCAG-friendly). */
+  listRowMinHeight: 52,
+} as const;
+
 /** Matches spec: sm 6, md 10, lg 16, xl 22, pill */
 export const radius = {
   sm: 6,

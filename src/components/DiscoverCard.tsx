@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/src/components/ui/Card';
+import { ProfilePhoto } from '@/src/components/ui/ProfilePhoto';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
+import { createTypographyStyles } from '@/src/theme/typography';
 import { radius, spacing } from '@/src/theme/tokens';
 
 type Props = {
@@ -16,46 +18,29 @@ type Props = {
 
 export function DiscoverCard({ title, subtitle, compatibility, imageUri, onPress }: Props) {
   const { colors: c, fonts: f } = useCarePairUi();
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        card: { marginBottom: spacing.md },
-        row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-        avatar: { width: 56, height: 56, borderRadius: radius.md },
-        avatarPh: {
-          backgroundColor: c.primaryMuted,
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-        phText: {
-          fontSize: 22,
-          fontWeight: '600',
-          color: c.primaryDark,
-          fontFamily: f.semibold,
-        },
-        body: { flex: 1 },
-        title: {
-          fontSize: 17,
-          fontWeight: '600',
-          color: c.text,
-          fontFamily: f.semibold,
-        },
-        sub: { fontSize: 14, color: c.textSecondary, marginTop: 4, fontFamily: f.regular },
-        badge: {
-          backgroundColor: c.primaryMuted,
-          paddingHorizontal: spacing.sm,
-          paddingVertical: spacing.xs,
-          borderRadius: radius.sm,
-        },
-        badgeText: {
-          fontWeight: '600',
-          color: c.primaryDark,
-          fontSize: 13,
-          fontFamily: f.semibold,
-        },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      card: { marginBottom: spacing.md },
+      row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+      avatar: { width: 56, height: 56, borderRadius: radius.md },
+      body: { flex: 1, minWidth: 0 },
+      title: { ...t.lead, fontWeight: '600', fontFamily: f.semibold },
+      sub: { ...t.caption, marginTop: spacing.xs },
+      badge: {
+        backgroundColor: c.primaryMuted,
+        paddingHorizontal: spacing.sm,
+        paddingVertical: spacing.xs,
+        borderRadius: radius.sm,
+      },
+      badgeText: {
+        fontWeight: '600',
+        color: c.primaryDark,
+        fontSize: 13,
+        fontFamily: f.semibold,
+      },
+    });
+  }, [c, f]);
 
   return (
     <Card
@@ -63,13 +48,7 @@ export function DiscoverCard({ title, subtitle, compatibility, imageUri, onPress
       style={styles.card}
       accessibilityLabel={`${title}. ${subtitle}${compatibility != null ? `. ${compatibility} percent match` : ''}`}>
       <View style={styles.row}>
-        {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, styles.avatarPh]}>
-            <Text style={styles.phText}>{title.slice(0, 1)}</Text>
-          </View>
-        )}
+        <ProfilePhoto uri={imageUri} style={styles.avatar} accessibilityLabel={`${title} photo`} />
         <View style={styles.body}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.sub} numberOfLines={2}>

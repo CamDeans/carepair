@@ -9,22 +9,16 @@ import { TextField } from '@/src/components/ui/TextField';
 import { useAuthStore } from '@/src/store/authStore';
 import type { UserRole } from '@/src/types/models';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
+import { createTypographyStyles } from '@/src/theme/typography';
 import { radius, spacing } from '@/src/theme/tokens';
 
 export default function SignupScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        h1: {
-          fontSize: 28,
-          fontWeight: '600',
-          color: c.text,
-          marginBottom: spacing.sm,
-          letterSpacing: -0.56,
-          fontFamily: f.semibold,
-        },
-        sub: { fontSize: 15, color: c.textSecondary, marginBottom: spacing.sm, fontFamily: f.regular },
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+        h1: { ...t.screenTitle, marginBottom: spacing.sm },
+        sub: { ...t.sub, marginBottom: spacing.sm },
         roles: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
         roleChip: {
           paddingVertical: spacing.sm,
@@ -54,9 +48,8 @@ export default function SignupScreen() {
           lineHeight: 20,
           fontFamily: f.regular,
         },
-      }),
-    [c, f],
-  );
+    });
+  }, [c, f]);
 
   const signup = useAuthStore((s) => s.signup);
   const [email, setEmail] = useState('');

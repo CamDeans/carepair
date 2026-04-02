@@ -30,7 +30,7 @@ const config: ExpoConfig = {
   },
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.carepair.app',
+    bundleIdentifier: 'com.camerondeans.carepair',
     ...(googleMapsIosKey
       ? { config: { googleMapsApiKey: googleMapsIosKey } }
       : {}),
@@ -48,7 +48,7 @@ const config: ExpoConfig = {
       foregroundImage: './assets/brand/adaptive-icon.png',
       backgroundColor: '#0A0A0A',
     },
-    package: 'com.carepair.app',
+    package: 'com.camerondeans.carepair',
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     ...(googleMapsAndroidKey

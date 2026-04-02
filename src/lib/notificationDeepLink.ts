@@ -18,6 +18,11 @@ function extractConversationId(data: Record<string, unknown> | undefined): strin
   return typeof raw === 'string' && raw.length > 0 ? raw : null;
 }
 
+function extractShiftId(data: Record<string, unknown> | undefined): string | null {
+  const raw = data?.shiftId;
+  return typeof raw === 'string' && raw.length > 0 ? raw : null;
+}
+
 /** Expo Router path, e.g. `/staff-portal` or `/staff-portal/team-access`. */
 function extractDeepLinkPath(data: Record<string, unknown> | undefined): string | null {
   const raw = data?.deepLink;
@@ -50,6 +55,13 @@ function handleNotificationOpen(router: Router, response: Notifications.Notifica
     return;
   }
 
+  const sid = extractShiftId(data);
+  if (sid) {
+    rememberHandled(nid);
+    router.push(`/shift/${sid}` as Href);
+    return;
+  }
+
   const cid = extractConversationId(data);
   if (!cid) return;
 
@@ -61,9 +73,10 @@ function handleNotificationOpen(router: Router, response: Notifications.Notifica
  * When the user opens a push (tap or cold start), route by notification `data`:
  * - `deepLink`: absolute in-app path starting with `/` (e.g. `/staff-portal`, `/staff-portal/team-access`)
  * - `staffPortal`: `"1"` or `"true"` → `/staff-portal`
- * - `conversationId`: opens that thread (see server `sendPushToUser`)
+ * - `shiftId`: opens `/shift/:id`
+ * - `conversationId`: opens that thread
  *
- * Priority: `deepLink`, then `staffPortal`, then `conversationId`.
+ * Priority: `deepLink`, then `staffPortal`, then `shiftId`, then `conversationId`.
  */
 export function subscribePushNotificationDeepLinks(router: Router): () => void {
   const sub = Notifications.addNotificationResponseReceivedListener((response) => {

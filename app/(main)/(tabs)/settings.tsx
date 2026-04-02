@@ -7,7 +7,8 @@ import { Screen } from '@/src/components/ui/Screen';
 import * as api from '@/src/lib/serverApi';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, radius, spacing } from '@/src/theme/tokens';
 
 export default function SettingsScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
@@ -19,46 +20,40 @@ export default function SettingsScreen() {
   const [calendarOpening, setCalendarOpening] = useState(false);
   const [calendarDisconnecting, setCalendarDisconnecting] = useState(false);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        h1: { fontSize: 28, fontWeight: '800', color: c.text, fontFamily: f.semibold },
-        email: {
-          fontSize: 14,
-          color: c.textSecondary,
-          marginTop: spacing.xs,
-          marginBottom: spacing.lg,
-          fontFamily: f.regular,
-        },
-        block: {
-          borderRadius: 12,
-          overflow: 'hidden',
-          borderWidth: 1,
-          borderColor: c.border,
-          backgroundColor: c.surface,
-        },
-        row: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingVertical: spacing.md,
-          paddingHorizontal: spacing.md,
-          borderBottomWidth: 1,
-          borderBottomColor: c.border,
-        },
-        rowText: { fontSize: 16, color: c.text, fontFamily: f.regular },
-        chev: { fontSize: 22, color: c.textSecondary },
-        logout: {
-          marginTop: spacing.xl,
-          textAlign: 'center',
-          color: c.danger,
-          fontWeight: '700',
-          fontSize: 16,
-          fontFamily: f.semibold,
-        },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      h1: { ...t.screenTitle, marginBottom: spacing.xs },
+      email: { ...t.caption, marginBottom: layout.sectionGap },
+      block: {
+        borderRadius: radius.lg,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: c.border,
+        backgroundColor: c.surface,
+      },
+      row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: layout.listRowMinHeight,
+        paddingVertical: spacing.sm + 2,
+        paddingHorizontal: spacing.lg,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: c.border,
+      },
+      rowText: { ...t.body },
+      chev: { fontSize: 20, color: c.textSubtle, fontWeight: '300' },
+      logout: {
+        marginTop: spacing.xl,
+        textAlign: 'center',
+        color: c.danger,
+        fontSize: 16,
+        fontWeight: '600',
+        fontFamily: f.semibold,
+      },
+    });
+  }, [c, f]);
 
   function Row({ title, onPress }: { title: string; onPress: () => void }) {
     return (

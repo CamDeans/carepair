@@ -8,6 +8,7 @@ import { TextField } from '@/src/components/ui/TextField';
 import * as api from '@/src/lib/serverApi';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
+import { createTypographyStyles } from '@/src/theme/typography';
 import { spacing } from '@/src/theme/tokens';
 
 export default function ShiftDetailScreen() {
@@ -22,26 +23,23 @@ export default function ShiftDetailScreen() {
   const [editNotes, setEditNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        h1: { fontSize: 22, fontWeight: '800', color: c.text, fontFamily: f.semibold },
-        line: { fontSize: 16, color: c.text, marginTop: spacing.sm, fontFamily: f.regular },
-        notes: { fontSize: 15, color: c.textSecondary, marginTop: spacing.sm, fontFamily: f.regular },
-        status: { fontWeight: '700', marginVertical: spacing.md, color: c.text, fontFamily: f.semibold },
-        section: {
-          fontSize: 15,
-          fontWeight: '700',
-          color: c.primaryDark,
-          marginTop: spacing.md,
-          marginBottom: spacing.sm,
-          fontFamily: f.semibold,
-        },
-        row: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
-        flex: { flex: 1 },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      h1: { ...t.sectionTitle },
+      line: { ...t.body, marginTop: spacing.sm },
+      notes: { ...t.sub, marginTop: spacing.sm },
+      status: { ...t.body, fontWeight: '600', marginVertical: spacing.md, fontFamily: f.semibold },
+      section: {
+        ...t.label,
+        color: c.primaryDark,
+        marginTop: spacing.md,
+        marginBottom: spacing.sm,
+      },
+      row: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+      flex: { flex: 1 },
+    });
+  }, [c, f]);
 
   useEffect(() => {
     if (!id) return;

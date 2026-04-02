@@ -1,13 +1,16 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Image, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/src/components/ui/Button';
+import { ProfilePhoto } from '@/src/components/ui/ProfilePhoto';
 import { Screen } from '@/src/components/ui/Screen';
+import { pickProfilePhotoUri } from '@/src/lib/profilePhoto';
 import * as api from '@/src/lib/serverApi';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, radius, spacing } from '@/src/theme/tokens';
 
 type FmProfile = {
   displayName?: string;
@@ -16,6 +19,7 @@ type FmProfile = {
   childrenCount?: number;
   budgetRangeLabel?: string;
   photoUrls?: string[];
+  primaryPhotoIndex?: number;
 };
 
 export default function FamilyDetailScreen() {
@@ -27,18 +31,17 @@ export default function FamilyDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [fm, setFm] = useState<FmProfile | null>(null);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        miss: { fontSize: 16, color: c.textSecondary, fontFamily: f.regular },
-        header: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md },
-        photo: { width: 96, height: 96, borderRadius: 16 },
-        name: { fontSize: 24, fontWeight: '800', color: c.text, fontFamily: f.semibold },
-        meta: { fontSize: 14, color: c.textSecondary, marginTop: 4, fontFamily: f.regular },
-        bio: { fontSize: 16, lineHeight: 24, color: c.text, marginBottom: spacing.lg, fontFamily: f.regular },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      miss: { ...t.bodySecondary },
+      header: { flexDirection: 'row', gap: layout.sectionGap - spacing.sm, marginBottom: layout.sectionGap - spacing.sm },
+      photo: { width: 96, height: 96, borderRadius: radius.lg },
+      name: { ...t.sectionTitle, fontSize: 22, lineHeight: 28 },
+      meta: { ...t.caption, marginTop: spacing.xs },
+      bio: { ...t.body, marginBottom: layout.sectionGap },
+    });
+  }, [c, f]);
 
   useEffect(() => {
     if (!id) return;
@@ -99,13 +102,20 @@ export default function FamilyDetailScreen() {
     );
   }
 
-  const photoUri = fm.photoUrls?.[0] ?? null;
+  const photoUri = pickProfilePhotoUri({
+    photoUrls: fm.photoUrls,
+    primaryPhotoIndex: fm.primaryPhotoIndex,
+  });
   const kids = fm.childrenCount ?? 0;
 
   return (
     <Screen scroll>
       <View style={styles.header}>
-        {photoUri ? <Image source={{ uri: photoUri }} style={styles.photo} /> : null}
+        <ProfilePhoto
+          uri={photoUri}
+          style={styles.photo}
+          accessibilityLabel={`${fm.displayName ?? 'Family'} profile photo`}
+        />
         <View style={{ flex: 1 }}>
           <Text style={styles.name}>{fm.displayName ?? 'Family'}</Text>
           <Text style={styles.meta}>

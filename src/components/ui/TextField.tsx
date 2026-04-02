@@ -33,7 +33,7 @@ export function TextField({
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        wrap: { marginBottom: spacing.md },
+        wrap: { marginBottom: spacing.lg },
         label: {
           fontSize: 14,
           fontWeight: '500',

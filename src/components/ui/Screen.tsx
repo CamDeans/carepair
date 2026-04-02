@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { layout } from '@/src/theme/tokens';
 
 type Props = {
   children: ReactNode;
@@ -17,8 +17,17 @@ export function Screen({ children, scroll, style }: Props) {
     () =>
       StyleSheet.create({
         safe: { flex: 1, backgroundColor: c.background },
-        fill: { flex: 1, padding: spacing.md },
-        scrollContent: { padding: spacing.md, paddingBottom: spacing.xl },
+        fill: {
+          flex: 1,
+          paddingHorizontal: layout.screenPaddingX,
+          paddingVertical: layout.screenPaddingY,
+        },
+        scrollContent: {
+          paddingHorizontal: layout.screenPaddingX,
+          paddingTop: layout.screenPaddingY,
+          paddingBottom: layout.sectionGap + layout.screenPaddingY,
+          flexGrow: 1,
+        },
       }),
     [c],
   );

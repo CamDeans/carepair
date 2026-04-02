@@ -3,7 +3,8 @@ import { StyleSheet, Text } from 'react-native';
 
 import { Screen } from '@/src/components/ui/Screen';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, spacing } from '@/src/theme/tokens';
 
 const BODY = [
   'CarePair connects independent families and caregivers. Respect, clear communication, and punctuality keep the community strong.',
@@ -13,26 +14,13 @@ const BODY = [
 
 export default function GuidelinesScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        h1: {
-          fontSize: 24,
-          fontWeight: '800',
-          color: c.text,
-          marginBottom: spacing.md,
-          fontFamily: f.semibold,
-        },
-        p: {
-          fontSize: 15,
-          lineHeight: 22,
-          color: c.textSecondary,
-          marginBottom: spacing.md,
-          fontFamily: f.regular,
-        },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      h1: { ...t.sectionTitle, fontSize: 24, lineHeight: 28, marginBottom: layout.sectionGap - spacing.sm },
+      p: { ...t.sub, marginBottom: spacing.md },
+    });
+  }, [c, f]);
 
   return (
     <Screen scroll>

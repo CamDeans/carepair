@@ -6,7 +6,8 @@ import { DiscoverCard } from '@/src/components/DiscoverCard';
 import { Screen } from '@/src/components/ui/Screen';
 import * as api from '@/src/lib/serverApi';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, spacing } from '@/src/theme/tokens';
 
 export default function SavedScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
@@ -14,22 +15,15 @@ export default function SavedScreen() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        h1: { fontSize: 28, fontWeight: '800', color: c.text, fontFamily: f.semibold },
-        sub: {
-          fontSize: 15,
-          color: c.textSecondary,
-          marginBottom: spacing.md,
-          marginTop: spacing.xs,
-          fontFamily: f.regular,
-        },
-        empty: { fontSize: 15, color: c.textSecondary, lineHeight: 22, fontFamily: f.regular },
-        err: { color: c.danger, marginBottom: spacing.sm, fontFamily: f.regular },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      h1: { ...t.screenTitle, marginBottom: spacing.xs },
+      sub: { ...t.sub, marginBottom: layout.sectionGap - spacing.sm, marginTop: spacing.xs },
+      empty: { ...t.bodySecondary },
+      err: { ...t.caption, color: c.danger, marginBottom: spacing.sm },
+    });
+  }, [c, f]);
 
   const load = useCallback(() => {
     let cancelled = false;
@@ -52,13 +46,17 @@ export default function SavedScreen() {
 
   useFocusEffect(load);
 
-  const cards = items.map((item) => ({
-    id: item.id,
-    title: item.displayName ?? 'User',
-    subtitle: [item.city, item.snippet].filter(Boolean).join(' · '),
-    imageUri: item.photoUri,
-    href: item.role === 'family' ? (`/family/${item.id}` as const) : (`/caregiver/${item.id}` as const),
-  }));
+  const cards = items.map((item) => {
+    const dist = item.distanceKm != null ? `${item.distanceKm} km` : '';
+    const subtitle = [item.city, item.snippet, dist].filter(Boolean).join(' · ');
+    return {
+      id: item.id,
+      title: item.displayName ?? 'User',
+      subtitle,
+      imageUri: item.photoUri,
+      href: item.role === 'family' ? (`/family/${item.id}` as const) : (`/caregiver/${item.id}` as const),
+    };
+  });
 
   return (
     <Screen scroll>

@@ -5,37 +5,39 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { Screen } from '@/src/components/ui/Screen';
 import * as api from '@/src/lib/serverApi';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, radius, spacing } from '@/src/theme/tokens';
 
 export default function StaffPortalHomeScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<api.PortalMeResponse | null>(null);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        sub: { fontSize: 14, color: c.textSecondary, marginBottom: spacing.lg, fontFamily: f.regular },
-        row: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingVertical: spacing.md,
-          borderBottomWidth: 1,
-          borderBottomColor: c.border,
-        },
-        rowText: { fontSize: 16, color: c.text, fontFamily: f.regular },
-        chev: { fontSize: 20, color: c.textSecondary },
-        adminRow: {
-          marginTop: spacing.md,
-          padding: spacing.md,
-          backgroundColor: c.primaryMuted,
-          borderRadius: 12,
-        },
-        adminText: { fontSize: 15, color: c.primaryDark, fontFamily: f.semibold },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      h1: { ...t.screenTitle, marginBottom: spacing.sm },
+      sub: { ...t.caption, marginBottom: spacing.lg },
+      row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: layout.listRowMinHeight,
+        paddingVertical: spacing.sm,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: c.border,
+      },
+      rowText: { ...t.body },
+      chev: { fontSize: 20, color: c.textSubtle, fontWeight: '300' },
+      adminRow: {
+        marginTop: spacing.md,
+        padding: spacing.lg,
+        backgroundColor: c.primaryMuted,
+        borderRadius: radius.lg,
+      },
+      adminText: { ...t.sub, color: c.primaryDark, fontWeight: '600', fontFamily: f.semibold },
+    });
+  }, [c, f]);
 
   const load = useCallback(() => {
     let cancelled = false;
@@ -77,6 +79,7 @@ export default function StaffPortalHomeScreen() {
 
   return (
     <Screen scroll>
+      <Text style={styles.h1}>Staff portal</Text>
       <Text style={styles.sub}>
         Signed in as {data.staffRole}. Open a section below. Team members only see what the admin enables.
       </Text>

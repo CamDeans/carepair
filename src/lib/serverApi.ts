@@ -33,6 +33,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
+export type NotificationPrefs = {
+  messages: boolean;
+  shifts: boolean;
+  matches: boolean;
+  marketing: boolean;
+};
+
 export type MeUser = {
   id: string;
   email: string;
@@ -43,6 +50,9 @@ export type MeUser = {
   caregiverProfile: Record<string, unknown> | null;
   searchRadiusKm?: number;
   location?: { type: string; coordinates: number[] };
+  /** IANA timezone for calendar events; set with profile location. */
+  calendarTimeZone?: string;
+  notificationPrefs?: NotificationPrefs;
   careTrialEndsAt?: string | null;
   savedUserIds?: string[];
   stripeCustomerId?: string;
@@ -204,14 +214,32 @@ export async function profilePatchCaregiver(patch: Record<string, unknown>) {
   });
 }
 
-export async function profileLocation(lng: number, lat: number, searchRadiusKm?: number) {
-  return request<{ location: { type: string; coordinates: number[] }; searchRadiusKm: number }>(
-    '/profile/location',
-    {
-      method: 'POST',
-      body: JSON.stringify({ lng, lat, searchRadiusKm }),
-    },
-  );
+export async function profileLocation(
+  lng: number,
+  lat: number,
+  searchRadiusKm?: number,
+  calendarTimeZone?: string,
+) {
+  return request<{
+    location: { type: string; coordinates: number[] };
+    searchRadiusKm: number;
+    calendarTimeZone?: string;
+  }>('/profile/location', {
+    method: 'POST',
+    body: JSON.stringify({
+      lng,
+      lat,
+      searchRadiusKm,
+      ...(calendarTimeZone ? { calendarTimeZone } : {}),
+    }),
+  });
+}
+
+export async function profileNotificationPrefsPatch(patch: Partial<NotificationPrefs>) {
+  return request<{ notificationPrefs: NotificationPrefs }>('/profile/notifications', {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  });
 }
 
 export async function profilePublish() {
@@ -281,6 +309,8 @@ export type ConversationRow = {
   id: string;
   peerId: string;
   peerName: string;
+  /** Primary profile photo URL when the peer has photos published. */
+  peerPhotoUri: string | null;
   lastMessage: string;
   lastMessageAt: string;
   unread?: boolean;

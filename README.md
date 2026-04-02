@@ -35,14 +35,18 @@ The Expo project ID is set in **`app.config.ts`** and duplicated under each prof
 
 **Sentry / EAS Android:** If `@sentry/react-native/expo` is enabled but **`SENTRY_ORG`** + **`SENTRY_AUTH_TOKEN`** are not set on EAS, release builds used to fail during `sentry-cli` source map upload. This repo sets **`SENTRY_DISABLE_AUTO_UPLOAD=true`** in **`eas.json`** so builds succeed; runtime reporting still works if **`EXPO_PUBLIC_SENTRY_DSN`** is set. To upload maps, add Sentry secrets and clear that flag (see **`.env.example`**).
 
-**First iOS build — credentials (non-interactive failure):** If EAS reports *Distribution Certificate is not validated for non-interactive builds* / *Credentials are not set up*, Apple’s distribution cert must be created or confirmed **once** in an interactive session (EAS cannot finish that step from a headless GitHub build the first time). From **`mobile/`**, run:
+**First iOS build — *Distribution Certificate is not validated for non-interactive builds*:** Builds started from **expo.dev** (or any CI) run **`build:internal`**, which is **non-interactive**. EAS may show *Using remote iOS credentials* but still fail until Apple signing is wired for that mode.
 
-```bash
-eas login
-eas credentials
-```
+1. **Recommended for cloud builds — App Store Connect API key** (lets Expo talk to Apple without an interactive prompt each time). Create a key in [App Store Connect → Users and Access → Integrations](https://appstoreconnect.apple.com/access/users) (save the **.p8**, **Key ID**, **Issuer ID**; role **Admin** is typical). Then from **`mobile/`** with a working `eas login`:
+   ```bash
+   npx eas-cli@latest credentials --platform ios
+   ```
+   Select the **`production`** profile → **App Store Connect: Manage your API Key** → register the key for this project (Expo’s [iOS submit — CI/CD](https://docs.expo.dev/submit/ios/#submitting-your-app-using-cicd-services) describes this path). After the key is stored on Expo, trigger the iOS production build again from the dashboard. See also [expo.fyi/creating-asc-api-key](https://expo.fyi/creating-asc-api-key).
 
-Choose **iOS** → your bundle id **`com.carepair.app`** → generate or assign a **Distribution** certificate and **App Store** provisioning profile, and complete any Apple ID / 2FA prompts. Alternatively run **`eas build --platform ios --profile production`** locally once and answer the credential wizard. After credentials exist and are validated on Expo’s servers, **cloud / CI iOS builds** can proceed. For fully automated CI long-term, configure an [App Store Connect API key](https://docs.expo.dev/submit/ios/#app-store-connect-api-key) for your Expo account as documented by Expo.
+2. **Alternative — one interactive local run** (when `eas login` works on your network):  
+   `npx eas-cli@latest credentials --platform ios` or `npx eas-cli@latest build --platform ios --profile production` and complete Apple ID / 2FA so distribution cert + App Store provisioning profile are fully validated on Expo’s servers.
+
+3. You can inspect or clear credentials under **[expo.dev](https://expo.dev)** → your project / account **Credentials** if you need to reset a bad state (then repeat step 1 or 2).
 
 **Export compliance:** `app.config.ts` sets **`ITSAppUsesNonExemptEncryption: false`** in `ios.infoPlist` (typical for HTTPS-only apps). If you add custom non-exempt cryptography, set **`true`** and handle compliance in App Store Connect.
 
@@ -117,7 +121,7 @@ Use this when the GitHub remote should contain **only** the app (clean history, 
 
 ## Project config reference
 
-- **App config:** `app.config.ts` (slug `carepair`, scheme `carepair`, bundle id `com.carepair.app`)
+- **App config:** `app.config.ts` (slug `carepair`, scheme `carepair`, ios bundle id `com.camerondeans.carepair`, android bundle slug `com.carepair.app`)
 - **EAS profiles:** `eas.json` (`development`, `preview`, `production`)
 - **Env template:** `.env.example` — **do not** commit `.env`
 

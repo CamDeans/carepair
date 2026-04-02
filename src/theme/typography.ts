@@ -1,30 +1,89 @@
-/**
- * Type scale per brand/CAREPAIR-VISUAL-SPEC.md — headings 600, labels 500, body 400.
- * Apply `fontFamily` from CarePairUi when fonts are loaded.
- */
 import type { TextStyle } from 'react-native';
 
-export type FontFaces = {
-  regular: string | undefined;
-  medium: string | undefined;
-  semibold: string | undefined;
-};
+import type { CarePairFonts } from '@/src/theme/CarePairUiContext';
+import type { CarePairPalette } from '@/src/theme/tokens';
 
-export function withFont(style: TextStyle, face: keyof FontFaces, fonts: FontFaces): TextStyle {
-  const name = fonts[face];
-  if (!name) return style;
-  return { ...style, fontFamily: name };
+/**
+ * CAREPAIR-VISUAL-SPEC.md — headings 600 / -0.02em / ~1.15 lh; body 400 / ~1.65 lh; labels 500 / 0.01em ls.
+ * Use via `createTypographyStyles(colors, fonts)` inside `useMemo` when `fontsLoaded` is true.
+ */
+export function createTypographyStyles(c: CarePairPalette, f: CarePairFonts) {
+  const screenTitle: TextStyle = {
+    fontSize: 28,
+    fontWeight: '600',
+    letterSpacing: -0.56,
+    lineHeight: 32,
+    color: c.text,
+    fontFamily: f.semibold,
+  };
+  const sectionTitle: TextStyle = {
+    fontSize: 20,
+    fontWeight: '600',
+    letterSpacing: -0.4,
+    lineHeight: 24,
+    color: c.text,
+    fontFamily: f.semibold,
+  };
+  const lead: TextStyle = {
+    fontSize: 17,
+    fontWeight: '400',
+    lineHeight: 26,
+    color: c.text,
+    fontFamily: f.regular,
+  };
+  const body: TextStyle = {
+    fontSize: 16,
+    fontWeight: '400',
+    lineHeight: 26,
+    color: c.text,
+    fontFamily: f.regular,
+  };
+  const bodySecondary: TextStyle = {
+    fontSize: 16,
+    fontWeight: '400',
+    lineHeight: 26,
+    color: c.textSecondary,
+    fontFamily: f.regular,
+  };
+  const sub: TextStyle = {
+    fontSize: 15,
+    fontWeight: '400',
+    lineHeight: 24,
+    color: c.textSecondary,
+    fontFamily: f.regular,
+  };
+  const caption: TextStyle = {
+    fontSize: 14,
+    fontWeight: '400',
+    lineHeight: 22,
+    color: c.textSecondary,
+    fontFamily: f.regular,
+  };
+  const label: TextStyle = {
+    fontSize: 14,
+    fontWeight: '500',
+    letterSpacing: 0.14,
+    lineHeight: 18,
+    color: c.text,
+    fontFamily: f.medium,
+  };
+  const link: TextStyle = {
+    fontSize: 15,
+    fontWeight: '500',
+    lineHeight: 22,
+    color: c.primary,
+    fontFamily: f.medium,
+  };
+
+  return {
+    screenTitle,
+    sectionTitle,
+    lead,
+    body,
+    bodySecondary,
+    sub,
+    caption,
+    label,
+    link,
+  } as const;
 }
-
-/** Base text styles (weights follow spec; merge fontFamily in screens/components). */
-export const typeScale = {
-  display: { fontSize: 28, fontWeight: '600' as const, letterSpacing: -0.56, lineHeight: 34 },
-  title: { fontSize: 24, fontWeight: '600' as const, letterSpacing: -0.48, lineHeight: 30 },
-  h2: { fontSize: 22, fontWeight: '600' as const, letterSpacing: -0.44, lineHeight: 28 },
-  subtitle: { fontSize: 18, fontWeight: '600' as const, letterSpacing: -0.36, lineHeight: 24 },
-  body: { fontSize: 15, fontWeight: '400' as const, lineHeight: 22 },
-  bodySmall: { fontSize: 14, fontWeight: '400' as const, lineHeight: 20 },
-  label: { fontSize: 14, fontWeight: '500' as const, letterSpacing: 0.14, lineHeight: 18 },
-  caption: { fontSize: 13, fontWeight: '400' as const, lineHeight: 18 },
-  micro: { fontSize: 12, fontWeight: '400' as const, lineHeight: 16 },
-} as const;

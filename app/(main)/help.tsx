@@ -3,7 +3,8 @@ import { Linking, Pressable, StyleSheet, Text } from 'react-native';
 
 import { Screen } from '@/src/components/ui/Screen';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { createTypographyStyles } from '@/src/theme/typography';
+import { layout, spacing } from '@/src/theme/tokens';
 
 const FAQ = [
   { q: 'How does CareSpace work?', a: 'After you match, start a trial to share a calendar, confirm shifts, and keep care notes in one place.' },
@@ -13,35 +14,22 @@ const FAQ = [
 
 export default function HelpScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        h1: {
-          fontSize: 24,
-          fontWeight: '800',
-          color: c.text,
-          marginBottom: spacing.md,
-          fontFamily: f.semibold,
-        },
-        block: { marginBottom: spacing.lg },
-        q: { fontWeight: '700', color: c.text, fontSize: 16, fontFamily: f.semibold },
-        a: {
-          color: c.textSecondary,
-          fontSize: 15,
-          lineHeight: 22,
-          marginTop: spacing.xs,
-          fontFamily: f.regular,
-        },
-        link: {
-          color: c.primary,
-          fontWeight: '600',
-          fontSize: 16,
-          marginTop: spacing.md,
-          fontFamily: f.semibold,
-        },
-      }),
-    [c, f],
-  );
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
+      h1: { ...t.sectionTitle, fontSize: 24, lineHeight: 28, marginBottom: layout.sectionGap - spacing.sm },
+      block: { marginBottom: spacing.lg },
+      q: { ...t.body, fontWeight: '600', fontFamily: f.semibold },
+      a: { ...t.sub, marginTop: spacing.xs },
+      link: {
+        ...t.body,
+        color: c.primary,
+        fontWeight: '600',
+        marginTop: spacing.md,
+        fontFamily: f.semibold,
+      },
+    });
+  }, [c, f]);
 
   return (
     <Screen scroll>

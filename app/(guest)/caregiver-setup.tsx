@@ -5,12 +5,13 @@ import { useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/src/components/ui/Button';
+import { PhotoSlotsRow } from '@/src/components/ui/PhotoSlotsRow';
 import { Screen } from '@/src/components/ui/Screen';
 import { TextField } from '@/src/components/ui/TextField';
 import * as api from '@/src/lib/serverApi';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
-import { spacing } from '@/src/theme/tokens';
+import { radius, spacing } from '@/src/theme/tokens';
 
 const STEPS = ['Basics', 'Experience & pay', 'Safety & references', 'Photos & documents', 'Location', 'Review'] as const;
 
@@ -111,7 +112,8 @@ export default function CaregiverSetupScreen() {
       }
       const pos = await Location.getCurrentPositionAsync({});
       const r = parseFloat(radiusKm) || 25;
-      await api.profileLocation(pos.coords.longitude, pos.coords.latitude, r);
+      const calendarTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      await api.profileLocation(pos.coords.longitude, pos.coords.latitude, r, calendarTimeZone);
       await api.profilePublish();
       await refreshMe();
       router.replace('/');
@@ -187,9 +189,15 @@ export default function CaregiverSetupScreen() {
 
       {step === 3 && (
         <>
-          <Text style={styles.h}>Photos ({photoUrls.length})</Text>
+          <Text style={styles.h}>Profile photos</Text>
+          <Text style={styles.p}>
+            At least one profile photo and one verification document (certification, ID, or résumé image/PDF) are required
+            to publish.
+          </Text>
+          <PhotoSlotsRow urls={photoUrls} maxSlots={4} slotSize={76} borderRadius={radius.md} />
           <Button title="Add photo" onPress={() => void pickAndUpload('photo')} />
-          <Text style={styles.h}>Documents / certs ({docUrls.length})</Text>
+          <Text style={[styles.h, { marginTop: spacing.lg }]}>Documents / certs ({docUrls.length})</Text>
+          <Text style={styles.p}>Upload at least one document before publishing.</Text>
           <Button title="Add document" variant="secondary" onPress={() => void pickAndUpload('doc')} />
         </>
       )}
