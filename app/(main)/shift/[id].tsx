@@ -163,6 +163,11 @@ export default function ShiftDetailScreen() {
       </Text>
       <Text style={styles.notes}>{shift.notes}</Text>
       <Text style={styles.status}>Status: {shift.status}</Text>
+      {user?.role === 'caregiver' && shift.status === 'pending' ? (
+        <Text style={styles.notes}>
+          Review the time below, then accept to confirm with the family or request a change.
+        </Text>
+      ) : null}
 
       {isFamilyOwner ? (
         <>

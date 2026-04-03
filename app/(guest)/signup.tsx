@@ -102,14 +102,16 @@ export default function SignupScreen() {
           I accept the Terms and Privacy policy (placeholder).
         </Text>
       </Pressable>
-      <Button
-        title="Continue"
-        onPress={onSubmit}
-        loading={loading}
-        disabled={!email || !password || !terms}
-      />
-      <GoogleSignInButton flow="signup" signupRole={role} disabled={!terms} />
-      <Button title="Log in instead" variant="ghost" onPress={() => router.replace('/login')} />
+      <View style={{ gap: spacing.md }}>
+        <Button
+          title="Continue"
+          onPress={onSubmit}
+          loading={loading}
+          disabled={!email || !password || !terms}
+        />
+        <GoogleSignInButton flow="signup" signupRole={role} disabled={!terms} />
+        <Button title="Log in instead" variant="ghost" onPress={() => router.replace('/login')} />
+      </View>
     </Screen>
   );
 }

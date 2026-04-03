@@ -475,3 +475,24 @@ export type MatchPeer = { id: string; role: UserRole; displayName: string; city?
 export async function matchesList() {
   return request<{ matches: MatchPeer[] }>('/matches');
 }
+
+export type MeetupProposalRow = {
+  id: string;
+  peerUserId: string;
+  peerName: string;
+  when: string;
+  where: string;
+  status: string;
+  createdAt: string;
+};
+
+export async function meetupProposalsList() {
+  return request<{ incoming: MeetupProposalRow[]; outgoing: MeetupProposalRow[] }>('/meetup-proposals');
+}
+
+export async function meetupProposalCreate(toUserId: string, when: string, where: string) {
+  return request<{ proposal: MeetupProposalRow }>('/meetup-proposals', {
+    method: 'POST',
+    body: JSON.stringify({ toUserId, when, where }),
+  });
+}

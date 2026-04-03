@@ -19,7 +19,8 @@ export default function SubscriptionScreen() {
   const user = useAuthStore((s) => s.user);
   const refreshMe = useAuthStore((s) => s.refreshMe);
   const [access, setAccess] = useState<CareAccessDto | null>(null);
-  const [opening, setOpening] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
 
   const styles = useMemo(() => {
     const t = createTypographyStyles(c, f);
@@ -37,6 +38,7 @@ export default function SubscriptionScreen() {
       },
       row: { ...t.sub, color: c.text, marginBottom: spacing.xs },
       legal: { ...t.caption, fontSize: 12, lineHeight: 18, marginTop: spacing.lg },
+      actions: { gap: spacing.md },
     });
   }, [c, f]);
 
@@ -60,9 +62,10 @@ export default function SubscriptionScreen() {
   const trialActive =
     !!(user?.careTrialEndsAt && new Date(user.careTrialEndsAt) > new Date()) || user?.subscriptionStatus === 'trialing';
   const subActive = user?.subscriptionStatus === 'active';
+  const hasBillingAccount = Boolean(user?.stripeCustomerId?.trim());
 
   const openCheckout = async () => {
-    setOpening(true);
+    setCheckoutLoading(true);
     try {
       const { url } = await api.stripeCheckoutSession();
       if (url) await WebBrowser.openBrowserAsync(url);
@@ -70,32 +73,39 @@ export default function SubscriptionScreen() {
     } catch (e) {
       Alert.alert('Stripe', e instanceof Error ? e.message : 'Failed');
     } finally {
-      setOpening(false);
+      setCheckoutLoading(false);
     }
   };
 
   const openPortal = async () => {
-    const fallback = getStripePortalUrl();
-    setOpening(true);
+    const fallback = getStripePortalUrl()?.trim();
+    setPortalLoading(true);
     try {
-      const returnUrl = Linking.createURL('/');
-      const { url } = await api.stripePortalSession(returnUrl);
-      if (url) {
-        await WebBrowser.openBrowserAsync(url);
-        await refreshMe();
-        const a = await api.subscriptionCareAccess();
-        setAccess(a);
-        return;
+      if (hasBillingAccount) {
+        const returnUrl = Linking.createURL('/');
+        const { url } = await api.stripePortalSession(returnUrl);
+        if (url) {
+          await WebBrowser.openBrowserAsync(url);
+          await refreshMe();
+          const a = await api.subscriptionCareAccess();
+          setAccess(a);
+          return;
+        }
       }
-      if (fallback?.trim()) {
+      if (fallback) {
         await WebBrowser.openBrowserAsync(fallback);
         return;
       }
-      Alert.alert('Billing', 'Set Stripe on the server or EXPO_PUBLIC_STRIPE_PORTAL_URL for portal fallback.');
+      Alert.alert(
+        'Billing portal',
+        hasBillingAccount
+          ? 'Stripe did not return a portal URL. Check server Stripe configuration.'
+          : 'Complete a subscription checkout first, or set EXPO_PUBLIC_STRIPE_PORTAL_URL for a static portal link.',
+      );
     } catch (e) {
-      Alert.alert('Billing', e instanceof Error ? e.message : 'Failed');
+      Alert.alert('Billing', e instanceof Error ? e.message : 'Failed to open portal.');
     } finally {
-      setOpening(false);
+      setPortalLoading(false);
     }
   };
 
@@ -112,9 +122,16 @@ export default function SubscriptionScreen() {
         <Text style={styles.row}>Trial window: {trialActive ? 'Yes' : 'No'}</Text>
         <Text style={styles.row}>Subscribed: {subActive ? 'Yes' : 'No'}</Text>
         <Text style={styles.row}>Status: {user?.subscriptionStatus ?? '—'}</Text>
+        <Text style={styles.row}>Billing account: {hasBillingAccount ? 'Yes' : 'No'}</Text>
       </View>
-      <Button title="Subscribe with Stripe" onPress={() => void openCheckout()} loading={opening} />
-      <Button title="Open billing portal" variant="secondary" onPress={() => void openPortal()} loading={opening} />
+      <View style={styles.actions}>
+        <Button title="Subscribe with Stripe" onPress={() => void openCheckout()} loading={checkoutLoading} />
+        <Button title="Open billing portal" variant="secondary" onPress={() => void openPortal()} loading={portalLoading} />
+      </View>
+      <Text style={[styles.sub, { fontSize: 13, marginTop: 0 }]}>
+        Stripe checkout creates your billing account for the customer portal. You can also configure EXPO_PUBLIC_STRIPE_PORTAL_URL as a
+        fallback link.
+      </Text>
       <Text style={styles.legal}>
         App Store / Play policies: confirm with counsel whether digital features require in-app purchase in your jurisdiction.
       </Text>

@@ -8,7 +8,7 @@ import { layout, spacing } from '@/src/theme/tokens';
 
 const FAQ = [
   { q: 'How does CareSpace work?', a: 'After you match, start a trial to share a calendar, confirm shifts, and keep care notes in one place.' },
-  { q: 'Who pays?', a: 'Families subscribe after a 7-day trial. Caregivers use CarePair for free.' },
+  { q: 'Who pays?', a: 'Families subscribe after a 7-day trial. Caregivers use CarePair for free, including CareSpace.' },
   { q: 'Is this a background-checked marketplace?', a: 'MVP focuses on the core loop. Background checks are planned for Phase 2.' },
 ];
 
@@ -43,9 +43,9 @@ export default function HelpScreen() {
       <Pressable
         accessibilityRole="link"
         accessibilityLabel="Email support"
-        onPress={() => Linking.openURL('mailto:support@carepair.example')}>
+        onPress={() => Linking.openURL('mailto:carepair.admin@gmail.com')}>
         <Text style={styles.link} importantForAccessibility="no">
-          Email support (placeholder)
+          Email carepair.admin@gmail.com
         </Text>
       </Pressable>
     </Screen>

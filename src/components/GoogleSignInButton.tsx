@@ -64,11 +64,23 @@ function GoogleSignInButtonImpl({ flow, signupRole = 'family', disabled = false 
     })();
   }, [response, flow, signupRole, loginWithGoogleIdToken]);
 
+  if (!request) {
+    return (
+      <Button
+        title="Preparing Google sign-in…"
+        variant="secondary"
+        disabled
+        loading
+        onPress={() => {}}
+      />
+    );
+  }
+
   return (
     <Button
       title={flow === 'signup' ? 'Continue with Google' : 'Sign in with Google'}
       variant="secondary"
-      disabled={!request || disabled}
+      disabled={disabled}
       onPress={() => void promptAsync()}
     />
   );

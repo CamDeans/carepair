@@ -153,6 +153,7 @@ export default function SettingsScreen() {
             onPress={connectGoogleCalendar}
           />
         )}
+        <Row title="Meet-up proposals" onPress={() => router.push('/meetup-proposals' as Href)} />
         <Row title="Notifications" onPress={() => router.push('/notifications-settings')} />
         <Row title="Help & support" onPress={() => router.push('/help')} />
         <Row title="Community guidelines" onPress={() => router.push('/guidelines')} />

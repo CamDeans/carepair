@@ -163,10 +163,12 @@ export default function CareSpaceScreen() {
       <Screen scroll>
         <Text style={styles.h1}>CareSpace</Text>
         <Text style={styles.sub}>
-          Unlock shared scheduling, shift confirmations, and care notes after you start a trial or subscribe.
+          Unlock shared scheduling, shift confirmations, and care notes with a 7-day trial or subscription.
         </Text>
-        <Button title="Start 7-day trial" onPress={() => void startTrial()} />
-        <Button title="Subscribe (Stripe)" variant="secondary" onPress={() => router.push('/subscription')} />
+        <View style={{ gap: spacing.md }}>
+          <Button title="Start 7-day trial" onPress={() => void startTrial()} />
+          <Button title="Subscribe (Stripe)" variant="secondary" onPress={() => router.push('/subscription')} />
+        </View>
       </Screen>
     );
   }
@@ -250,27 +252,29 @@ export default function CareSpaceScreen() {
           ))}
         </View>
       ) : null}
-      {role === 'family' ? (
+      <View style={{ gap: spacing.md, marginTop: spacing.sm }}>
+        {role === 'family' ? (
+          <Button
+            title="Add shift"
+            onPress={() => {
+              if (!defaultCaregiverId) {
+                Alert.alert('No caregiver yet', 'Match with a caregiver from Discover before scheduling a shift.');
+                return;
+              }
+              router.push({ pathname: '/shift/new', params: { caregiverUserId: defaultCaregiverId } });
+            }}
+          />
+        ) : null}
         <Button
-          title="Add shift"
+          title="Care notes"
+          variant="secondary"
           onPress={() => {
-            if (!defaultCaregiverId) {
-              Alert.alert('No caregiver yet', 'Match with a caregiver from Discover before scheduling a shift.');
-              return;
-            }
-            router.push({ pathname: '/shift/new', params: { caregiverUserId: defaultCaregiverId } });
+            const peer = matches[0]?.id;
+            if (peer) router.push({ pathname: '/care-notes', params: { peerUserId: peer } });
+            else router.push('/care-notes');
           }}
         />
-      ) : null}
-      <Button
-        title="Care notes"
-        variant="secondary"
-        onPress={() => {
-          const peer = matches[0]?.id;
-          if (peer) router.push({ pathname: '/care-notes', params: { peerUserId: peer } });
-          else router.push('/care-notes');
-        }}
-      />
+      </View>
       <View style={styles.notePreview}>
         <Text style={styles.cardTitle}>Latest note</Text>
         <Text style={styles.cardBody} numberOfLines={3}>

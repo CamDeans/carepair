@@ -118,10 +118,26 @@ export default function FamilySetupScreen() {
         Alert.alert('Location', 'Location is required to publish your profile.');
         return;
       }
-      const pos = await Location.getCurrentPositionAsync({});
+      let lat: number;
+      let lng: number;
+      try {
+        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
+      } catch {
+        const last = await Location.getLastKnownPositionAsync();
+        if (last?.coords) {
+          lat = last.coords.latitude;
+          lng = last.coords.longitude;
+        } else {
+          throw new Error(
+            'Current location is unavailable. On emulators, set a mock location or test on a device with GPS.',
+          );
+        }
+      }
       const r = parseFloat(radiusKm) || 25;
       const calendarTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      await api.profileLocation(pos.coords.longitude, pos.coords.latitude, r, calendarTimeZone);
+      await api.profileLocation(lng, lat, r, calendarTimeZone);
       await api.profilePublish();
       await refreshMe();
       router.replace('/');
@@ -132,8 +148,9 @@ export default function FamilySetupScreen() {
 
   return (
     <Screen scroll>
-      <Text style={styles.step}>
-        Step {step + 1}/{STEPS.length} — {STEPS[step]}
+      <Text style={styles.step}>Family profile setup</Text>
+      <Text style={[styles.step, { marginTop: -spacing.sm, marginBottom: spacing.lg }]}>
+        Step {step + 1} of {STEPS.length} — {STEPS[step]}
       </Text>
 
       {step === 0 && (

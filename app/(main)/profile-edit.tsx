@@ -106,6 +106,7 @@ export default function ProfileEditScreen() {
         });
       }
       await refreshMe();
+      Alert.alert('Saved', 'Your profile was updated.');
       router.back();
     } catch (e) {
       Alert.alert('Profile', e instanceof Error ? e.message : 'Failed');

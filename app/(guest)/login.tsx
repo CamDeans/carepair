@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, StyleSheet, Text } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { GoogleSignInButton } from '@/src/components/GoogleSignInButton';
 import { Button } from '@/src/components/ui/Button';
@@ -48,9 +48,11 @@ export default function LoginScreen() {
       <Text style={styles.link} onPress={() => router.push('/forgot-password')}>
         Forgot password?
       </Text>
-      <Button title="Log in" onPress={onSubmit} loading={loading} disabled={!email || !password} />
-      <GoogleSignInButton flow="login" />
-      <Button title="Create an account" variant="ghost" onPress={() => router.replace('/signup')} />
+      <View style={{ gap: spacing.md }}>
+        <Button title="Log in" onPress={onSubmit} loading={loading} disabled={!email || !password} />
+        <GoogleSignInButton flow="login" />
+        <Button title="Create an account" variant="ghost" onPress={() => router.replace('/signup')} />
+      </View>
       <Text style={styles.link} onPress={() => router.push('/staff-signup')}>
         Staff or tester signup
       </Text>

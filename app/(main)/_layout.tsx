@@ -15,6 +15,10 @@ export default function MainLayout() {
       headerStyle: { backgroundColor: c.surface },
       headerShadowVisible: false,
       contentStyle: { backgroundColor: c.background },
+      /** Native stack: edge / full-screen swipe to go back (iOS especially). */
+      gestureEnabled: true,
+      fullScreenGestureEnabled: true,
+      animation: 'slide_from_right' as const,
     }),
     [c],
   );
@@ -31,11 +35,12 @@ export default function MainLayout() {
   return (
     <Stack screenOptions={screenOptions}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="caregiver/[id]" options={{ title: 'Caregiver' }} />
-      <Stack.Screen name="family/[id]" options={{ title: 'Family' }} />
+      <Stack.Screen name="caregiver/[id]" options={{ title: 'Caregiver', headerBackTitle: '' }} />
+      <Stack.Screen name="family/[id]" options={{ title: 'Family', headerBackTitle: '' }} />
       <Stack.Screen name="conversation/[id]" options={{ title: 'Messages' }} />
       <Stack.Screen name="connection-request" options={{ title: 'Connect', presentation: 'modal' }} />
       <Stack.Screen name="meetup-schedule" options={{ title: 'Schedule meet-up' }} />
+      <Stack.Screen name="meetup-proposals" options={{ title: 'Meet-up proposals' }} />
       <Stack.Screen name="shift/new" options={{ title: 'Add shift' }} />
       <Stack.Screen name="shift/[id]" options={{ title: 'Shift' }} />
       <Stack.Screen name="care-notes" options={{ title: 'Care notes' }} />

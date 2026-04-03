@@ -40,6 +40,7 @@ export default function FamilyDetailScreen() {
       name: { ...t.sectionTitle, fontSize: 22, lineHeight: 28 },
       meta: { ...t.caption, marginTop: spacing.xs },
       bio: { ...t.body, marginBottom: layout.sectionGap },
+      actions: { gap: spacing.md },
     });
   }, [c, f]);
 
@@ -124,19 +125,29 @@ export default function FamilyDetailScreen() {
         </View>
       </View>
       <Text style={styles.bio}>{fm.scheduleNeeds ?? ''}</Text>
-      <Button title={saved ? 'Saved' : 'Save to favourites'} variant={saved ? 'secondary' : 'primary'} onPress={() => void toggleSaved()} />
-      <Button title="Message" variant="secondary" onPress={() => void openChat()} />
-      <Button
-        title="Send connection request"
-        variant="ghost"
-        onPress={() =>
-          router.push({
-            pathname: '/connection-request',
-            params: { peerId: id, peerName: fm.displayName ?? 'Family', peerRole: 'family' },
-          })
-        }
-      />
-      <Button title="Schedule meet-up" onPress={() => router.push({ pathname: '/meetup-schedule', params: { peerName: fm.displayName ?? '' } })} />
+      <View style={styles.actions}>
+        <Button title={saved ? 'Saved' : 'Save to favourites'} variant={saved ? 'secondary' : 'primary'} onPress={() => void toggleSaved()} />
+        <Button title="Message" variant="secondary" onPress={() => void openChat()} />
+        <Button
+          title="Send connection request"
+          variant="ghost"
+          onPress={() =>
+            router.push({
+              pathname: '/connection-request',
+              params: { peerId: id, peerName: fm.displayName ?? 'Family', peerRole: 'family' },
+            })
+          }
+        />
+        <Button
+          title="Schedule meet-up"
+          onPress={() =>
+            router.push({
+              pathname: '/meetup-schedule',
+              params: { peerId: id, peerName: fm.displayName ?? '' },
+            })
+          }
+        />
+      </View>
     </Screen>
   );
 }

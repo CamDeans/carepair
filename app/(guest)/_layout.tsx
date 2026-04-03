@@ -14,6 +14,9 @@ export default function GuestLayout() {
       headerShadowVisible: false,
       contentStyle: { backgroundColor: c.background },
       headerTitle: () => <BrandLogo variant="header" />,
+      gestureEnabled: true,
+      fullScreenGestureEnabled: true,
+      animation: 'slide_from_right' as const,
     }),
     [c],
   );

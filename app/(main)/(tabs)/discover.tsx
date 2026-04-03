@@ -57,13 +57,6 @@ export default function DiscoverScreen() {
         minHeight: 48,
         fontFamily: f.regular,
       },
-      actions: {
-        flexDirection: 'row',
-        gap: spacing.sm,
-        marginTop: spacing.md,
-        marginBottom: spacing.sm,
-        flexWrap: 'wrap',
-      },
     });
   }, [c, f]);
 
@@ -136,7 +129,7 @@ export default function DiscoverScreen() {
   };
 
   return (
-    <Screen scroll>
+    <Screen scroll directionalLockIOS>
       <Text style={styles.h1}>Discover</Text>
       <Text style={styles.sub}>Swipe right to connect, left to pass. Heart saves without matching.</Text>
 
@@ -180,34 +173,31 @@ export default function DiscoverScreen() {
         keyboardType="decimal-pad"
         onEndEditing={() => void load()}
       />
-      <Button title={loading ? 'Loading…' : 'Refresh'} onPress={() => void load()} disabled={loading || !coords} />
-
-      {current ? (
-        <SwipeDeck
-          key={current.id}
-          card={current}
-          onSwipeLeft={() => void onSwipe(false)}
-          onSwipeRight={() => void onSwipe(true)}
-        />
-      ) : (
-        <SwipeDeck card={null} onSwipeLeft={() => {}} onSwipeRight={() => {}} />
-      )}
-
-      <View style={styles.actions}>
-        <Button title="Pass" variant="secondary" onPress={() => void onSwipe(false)} disabled={!current} />
-        <Button title="Heart" variant="secondary" onPress={() => void onHeart()} disabled={!current} />
-        <Button title="Like" onPress={() => void onSwipe(true)} disabled={!current} />
+      <View style={{ marginBottom: spacing.lg }}>
+        <Button title={loading ? 'Loading…' : 'Refresh'} onPress={() => void load()} disabled={loading || !coords} />
       </View>
 
-      {current ? (
-        <Button
-          title="Open profile"
-          variant="ghost"
-          onPress={() =>
-            router.push(user?.role === 'family' ? `/caregiver/${current.id}` : `/family/${current.id}`)
-          }
-        />
-      ) : null}
+      <View style={{ marginBottom: spacing.md }}>
+        {current ? (
+          <SwipeDeck
+            key={current.id}
+            card={current}
+            onSwipeLeft={() => void onSwipe(false)}
+            onSwipeRight={() => void onSwipe(true)}
+            onHeart={() => void onHeart()}
+            onOpenProfile={() =>
+              router.push(user?.role === 'family' ? `/caregiver/${current.id}` : `/family/${current.id}`)
+            }
+          />
+        ) : (
+          <SwipeDeck
+            card={null}
+            onSwipeLeft={() => {}}
+            onSwipeRight={() => {}}
+            onHeart={() => {}}
+          />
+        )}
+      </View>
     </Screen>
   );
 }
