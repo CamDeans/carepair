@@ -4,6 +4,14 @@ import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
+/** Match server `profilePublish` defaults (photos + family supporting docs). */
+const MIN_PROFILE_PHOTOS = 1;
+const MIN_SUPPORTING_DOCS = 1;
+
+function countFilledUrls(urls: string[]): number {
+  return urls.map((u) => u.trim()).filter(Boolean).length;
+}
+
 import { Button } from '@/src/components/ui/Button';
 import { PhotoSlotsRow } from '@/src/components/ui/PhotoSlotsRow';
 import { Screen } from '@/src/components/ui/Screen';
@@ -62,6 +70,9 @@ export default function FamilySetupScreen() {
         r: { color: c.text, marginBottom: spacing.xs, fontFamily: f.regular },
         row: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
         flex: { flex: 1 },
+        reqOk: { color: c.success, fontWeight: '600', fontFamily: f.semibold, marginTop: spacing.sm },
+        reqBad: { color: c.danger, fontWeight: '600', fontFamily: f.semibold, marginTop: spacing.sm },
+        docLine: { color: c.textSecondary, fontSize: 14, marginTop: spacing.xs, fontFamily: f.regular },
       }),
     [c, f],
   );
@@ -100,6 +111,17 @@ export default function FamilySetupScreen() {
   };
 
   const next = async () => {
+    if (step === 3) {
+      const nPhotos = countFilledUrls(photoUrls);
+      const nDocs = countFilledUrls(docUrls);
+      if (nPhotos < MIN_PROFILE_PHOTOS || nDocs < MIN_SUPPORTING_DOCS) {
+        Alert.alert(
+          'Photos & documents required',
+          `Add at least ${MIN_PROFILE_PHOTOS} profile photo(s) and ${MIN_SUPPORTING_DOCS} supporting document (for example a utility summary, school note, or other image that helps show you are a real household). Caregivers rely on this to trust who they match with.`,
+        );
+        return;
+      }
+    }
     try {
       await savePartial();
       setStep((s) => Math.min(s + 1, STEPS.length - 1));
@@ -111,6 +133,15 @@ export default function FamilySetupScreen() {
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
   const finish = async () => {
+    const nPhotos = countFilledUrls(photoUrls);
+    const nDocs = countFilledUrls(docUrls);
+    if (nPhotos < MIN_PROFILE_PHOTOS || nDocs < MIN_SUPPORTING_DOCS) {
+      Alert.alert(
+        'Complete photos & documents',
+        `You need at least ${MIN_PROFILE_PHOTOS} photo(s) and ${MIN_SUPPORTING_DOCS} supporting document. Go back to the Photos & documents step.`,
+      );
+      return;
+    }
     try {
       await savePartial();
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -211,13 +242,36 @@ export default function FamilySetupScreen() {
         <>
           <Text style={styles.h}>Profile photos</Text>
           <Text style={styles.p}>
-            Add your own photos — at least one is required to publish. Empty dashed slots show where more can go.
+            Add real photos of you or your household. At least {MIN_PROFILE_PHOTOS} photo is required. Caregivers use this to recognize who
+            they may work with.
           </Text>
           <PhotoSlotsRow urls={photoUrls} maxSlots={4} slotSize={76} borderRadius={radius.md} />
           <Button title="Add photo" onPress={() => void pickAndUpload('photo')} />
-          <Text style={[styles.h, { marginTop: spacing.lg }]}>Supporting documents ({docUrls.length})</Text>
-          <Text style={styles.p}>PDF or screenshots via image upload.</Text>
+          {countFilledUrls(photoUrls) >= MIN_PROFILE_PHOTOS ? (
+            <Text style={styles.reqOk}>✓ {countFilledUrls(photoUrls)} profile photo(s)</Text>
+          ) : (
+            <Text style={styles.reqBad}>
+              Need {MIN_PROFILE_PHOTOS} photo — you have {countFilledUrls(photoUrls)}
+            </Text>
+          )}
+
+          <Text style={[styles.h, { marginTop: spacing.lg }]}>Supporting documents ({countFilledUrls(docUrls)})</Text>
+          <Text style={styles.p}>
+            Upload at least {MIN_SUPPORTING_DOCS} image (screenshot or photo) that helps show you are a genuine parent or guardian — for
+            example a utility summary, school or daycare note, or benefit letter with sensitive numbers covered. This is not shown on your
+            public profile; it reduces fake accounts for caregivers.
+          </Text>
           <Button title="Add document image" variant="secondary" onPress={() => void pickAndUpload('doc')} />
+          {docUrls.filter((u) => u.trim()).map((u, i) => (
+            <Text key={`${u}-${i}`} style={styles.docLine} numberOfLines={1}>
+              Document {i + 1}: uploaded
+            </Text>
+          ))}
+          {countFilledUrls(docUrls) >= MIN_SUPPORTING_DOCS ? (
+            <Text style={styles.reqOk}>✓ Supporting document on file</Text>
+          ) : (
+            <Text style={styles.reqBad}>Add at least {MIN_SUPPORTING_DOCS} document to continue.</Text>
+          )}
         </>
       )}
 
@@ -239,7 +293,16 @@ export default function FamilySetupScreen() {
       <View style={styles.row}>
         {step > 0 ? <Button title="Back" variant="secondary" onPress={back} style={styles.flex} /> : <View style={styles.flex} />}
         {step < STEPS.length - 1 ? (
-          <Button title="Next" onPress={() => void next()} style={styles.flex} disabled={step === 0 && !form.displayName.trim()} />
+          <Button
+            title="Next"
+            onPress={() => void next()}
+            style={styles.flex}
+            disabled={
+              (step === 0 && !form.displayName.trim()) ||
+              (step === 3 &&
+                (countFilledUrls(photoUrls) < MIN_PROFILE_PHOTOS || countFilledUrls(docUrls) < MIN_SUPPORTING_DOCS))
+            }
+          />
         ) : (
           <Button title="Publish profile" onPress={() => void finish()} style={styles.flex} />
         )}

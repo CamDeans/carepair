@@ -62,7 +62,7 @@ export default function SubscriptionScreen() {
   const trialActive =
     !!(user?.careTrialEndsAt && new Date(user.careTrialEndsAt) > new Date()) || user?.subscriptionStatus === 'trialing';
   const subActive = user?.subscriptionStatus === 'active';
-  const hasBillingAccount = Boolean(user?.stripeCustomerId?.trim());
+  const hasBillingAccount = user?.hasStripeBilling === true;
 
   const openCheckout = async () => {
     setCheckoutLoading(true);

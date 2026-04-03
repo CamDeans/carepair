@@ -5,7 +5,7 @@ import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, StyleSheet
 import { Button } from '@/src/components/ui/Button';
 import { ProfilePhoto } from '@/src/components/ui/ProfilePhoto';
 import { TextField } from '@/src/components/ui/TextField';
-import type { ChatMessageDto } from '@/src/lib/serverApi';
+import type { ChatMessageDto, ConversationPeerDto } from '@/src/lib/serverApi';
 import * as api from '@/src/lib/serverApi';
 import { pickProfilePhotoUri } from '@/src/lib/profilePhoto';
 import { getChatSocket } from '@/src/lib/socket';
@@ -30,6 +30,7 @@ export default function ConversationScreen() {
   }, [user]);
 
   const [messages, setMessages] = useState<ChatMessageDto[]>([]);
+  const [peer, setPeer] = useState<ConversationPeerDto | null>(null);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(true);
   const listRef = useRef<FlatList>(null);
@@ -99,8 +100,10 @@ export default function ConversationScreen() {
 
     (async () => {
       setLoading(true);
+      setPeer(null);
       try {
-        const { messages: list } = await api.messagesList(id);
+        const { messages: list, peer: peerRow } = await api.messagesList(id);
+        setPeer(peerRow ?? null);
         const s = new Set<string>();
         const rows = list.map((m) => {
           s.add(m.id);
@@ -124,6 +127,7 @@ export default function ConversationScreen() {
         socketOff = () => socket.off('message:new', handler);
       } catch {
         setMessages([]);
+        setPeer(null);
       } finally {
         setLoading(false);
       }
@@ -147,9 +151,10 @@ export default function ConversationScreen() {
     }
   };
 
+  /** Outgoing: always current user's profile photo from the session (not server echo). Incoming: sender URI, else peer snapshot from thread. */
   const photoFor = (m: ChatMessageDto, fromMe: boolean) => {
-    if (fromMe) return m.senderPhotoUri ?? myPhotoUri;
-    return m.senderPhotoUri;
+    if (fromMe) return myPhotoUri;
+    return m.senderPhotoUri ?? peer?.photoUri ?? null;
   };
 
   return (
@@ -168,8 +173,9 @@ export default function ConversationScreen() {
         keyExtractor={(m) => m.id}
         contentContainerStyle={styles.list}
         onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+        extraData={{ myId, myPhotoUri, peer }}
         renderItem={({ item }) => {
-          const fromMe = item.senderId === myId;
+          const fromMe = myId != null && String(item.senderId) === String(myId);
           const uri = photoFor(item, fromMe);
           return (
             <View style={[styles.row, fromMe ? styles.rowMe : styles.rowThem]}>

@@ -42,7 +42,8 @@ export type MeUser = {
   notificationPrefs?: NotificationPrefs;
   careTrialEndsAt?: string | null;
   savedUserIds?: string[];
-  stripeCustomerId?: string;
+  /** True when a Stripe Customer exists; raw `cus_…` id is never sent to the client. */
+  hasStripeBilling?: boolean;
   googleCalendarConnected?: boolean;
   /** Present when server marks user as DB-only tester (CareSpace bypass). */
   isAdmin?: boolean;
@@ -299,6 +300,19 @@ export type DiscoverCardDto = {
   payRangeLabel: string;
   childrenSummary: string;
   distanceKm: number | null;
+  /** Family: schedule / story · Caregiver: bio excerpt */
+  detailPreview?: string;
+  petsPreview?: string;
+  carePreview?: string;
+  certificationsPreview?: string;
+  availabilityPreview?: string;
+  educationPreview?: string;
+  languagesPreview?: string;
+  firstAidCpr?: boolean;
+  vulnerableSectorCheck?: boolean;
+  yearsExperienceLabel?: string;
+  /** Family cards: true when at least one supporting document URL is stored (file contents not exposed). */
+  supportingDocumentsOnFile?: boolean;
 };
 
 export async function swipeUser(toUserId: string, liked: boolean) {
@@ -357,8 +371,17 @@ export type ChatMessageDto = {
   senderPhotoUri: string | null;
 };
 
+/** Other participant in this thread (for avatars when per-message URI is missing or stale). */
+export type ConversationPeerDto = {
+  id: string;
+  displayName: string;
+  photoUri: string | null;
+};
+
 export async function messagesList(conversationId: string) {
-  return request<{ messages: ChatMessageDto[] }>(`/conversations/${conversationId}/messages`);
+  return request<{ messages: ChatMessageDto[]; peer: ConversationPeerDto | null }>(
+    `/conversations/${conversationId}/messages`,
+  );
 }
 
 export async function messageSend(conversationId: string, body: string) {
@@ -426,6 +449,13 @@ export async function shiftPatch(
   return request<ShiftPatchResponse>(`/shifts/${shiftId}`, {
     method: 'PATCH',
     body: JSON.stringify(patch),
+  });
+}
+
+/** Family only — removes shift and calendar links. */
+export async function shiftDelete(shiftId: string) {
+  return request<{ ok: boolean; calendarWarnings?: string[] }>(`/shifts/${shiftId}`, {
+    method: 'DELETE',
   });
 }
 

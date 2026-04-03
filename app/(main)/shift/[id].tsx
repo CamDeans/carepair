@@ -103,6 +103,33 @@ export default function ShiftDetailScreen() {
     }
   };
 
+  const reopenShift = async () => {
+    if (!shift) return;
+    try {
+      await api.shiftPatch(shift.id, { status: 'pending' });
+      setShift({ ...shift, status: 'pending' });
+      Alert.alert('Re-opened', 'The caregiver can review and respond to this shift again.');
+    } catch (e) {
+      Alert.alert('Shift', e instanceof Error ? e.message : 'Failed');
+    }
+  };
+
+  const deleteShiftPermanently = async () => {
+    if (!shift) return;
+    try {
+      const r = await api.shiftDelete(shift.id);
+      if (r.calendarWarnings?.length) {
+        Alert.alert('Shift removed', r.calendarWarnings.join('\n\n'), [
+          { text: 'OK', onPress: () => router.back() },
+        ]);
+      } else {
+        router.back();
+      }
+    } catch (e) {
+      Alert.alert('Shift', e instanceof Error ? e.message : 'Failed');
+    }
+  };
+
   const saveSchedule = async () => {
     if (!shift) return;
     setSaving(true);
@@ -187,7 +214,34 @@ export default function ShiftDetailScreen() {
         </View>
       ) : null}
 
-      {shift.status !== 'canceled' ? (
+      {isFamilyOwner && shift.status === 'canceled' ? (
+        <>
+          <Text style={styles.section}>Canceled shift</Text>
+          <Text style={styles.notes}>
+            Re-open sends it back to the caregiver as pending, or delete to remove it from both of your histories.
+          </Text>
+          <View style={styles.row}>
+            <Button title="Re-open" onPress={() => void reopenShift()} style={styles.flex} />
+            <Button
+              title="Delete"
+              variant="secondary"
+              onPress={() =>
+                Alert.alert(
+                  'Delete this shift?',
+                  'Removes it from CareSpace for you and the caregiver. This cannot be undone.',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Delete', style: 'destructive', onPress: () => void deleteShiftPermanently() },
+                  ],
+                )
+              }
+              style={styles.flex}
+            />
+          </View>
+        </>
+      ) : null}
+
+      {isFamilyOwner && shift.status !== 'canceled' ? (
         <Button
           title="Cancel shift"
           variant="ghost"

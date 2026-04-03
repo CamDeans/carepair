@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { Image, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
+import { resolveMediaUri } from '@/src/lib/mediaUrl';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
 
 import { ImagePlaceholder } from './ImagePlaceholder';
@@ -12,28 +14,43 @@ type Props = {
 
 /**
  * Shows a real profile image when `uri` is non-empty; otherwise a dashed placeholder (no letter avatars).
+ * Resolves root-relative URLs against the API host; on load error falls back to placeholder (avoids black tiles).
  */
 export function ProfilePhoto({ uri, style, accessibilityLabel }: Props) {
   const { colors: c } = useCarePairUi();
-  const trimmed = uri?.trim();
-  if (trimmed) {
+  const resolved = resolveMediaUri(uri);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [resolved]);
+
+  if (!resolved || failed) {
     return (
-      <View
-        style={[styles.clip, { backgroundColor: c.surface }, style]}
-        accessibilityLabel={accessibilityLabel ?? 'Profile photo'}
-        accessibilityRole="image">
-        <Image source={{ uri: trimmed }} style={StyleSheet.absoluteFill} resizeMode="cover" />
-      </View>
+      <ImagePlaceholder
+        style={style}
+        accessibilityLabel={accessibilityLabel ?? 'No profile photo yet'}
+      />
     );
   }
+
   return (
-    <ImagePlaceholder
-      style={style}
-      accessibilityLabel={accessibilityLabel ?? 'No profile photo yet'}
-    />
+    <View
+      style={[styles.clip, { backgroundColor: c.border }, style]}
+      accessibilityLabel={accessibilityLabel ?? 'Profile photo'}
+      accessibilityRole="image">
+      <Image
+        key={resolved}
+        source={{ uri: resolved }}
+        style={styles.image}
+        resizeMode="cover"
+        onError={() => setFailed(true)}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   clip: { overflow: 'hidden' },
+  image: { ...StyleSheet.absoluteFillObject, backgroundColor: 'transparent' },
 });

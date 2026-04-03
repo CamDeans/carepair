@@ -1,6 +1,7 @@
 import { router, useFocusEffect, type Href } from 'expo-router';
+import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Screen } from '@/src/components/ui/Screen';
@@ -77,6 +78,17 @@ export default function SettingsScreen() {
       })();
     }, [refreshMe]),
   );
+
+  useEffect(() => {
+    const onUrl = ({ url }: { url: string }) => {
+      if (url.includes('googleCalendar=connected')) void refreshMe();
+    };
+    const sub = Linking.addEventListener('url', onUrl);
+    void Linking.getInitialURL().then((url) => {
+      if (url?.includes('googleCalendar=connected')) void refreshMe();
+    });
+    return () => sub.remove();
+  }, [refreshMe]);
 
   const connectGoogleCalendar = () => {
     void (async () => {

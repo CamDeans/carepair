@@ -23,7 +23,10 @@ const shiftDraftSchema = z
 
 export default function NewShiftScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
-  const { caregiverUserId: paramCg } = useLocalSearchParams<{ caregiverUserId?: string }>();
+  const { caregiverUserId: paramCg, date: paramDate } = useLocalSearchParams<{
+    caregiverUserId?: string;
+    date?: string;
+  }>();
   const [caregiverUserId, setCaregiverUserId] = useState('');
   const [matches, setMatches] = useState<api.MatchPeer[]>([]);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
@@ -52,6 +55,10 @@ export default function NewShiftScreen() {
   useEffect(() => {
     if (paramCg) setCaregiverUserId(paramCg);
   }, [paramCg]);
+
+  useEffect(() => {
+    if (paramDate && /^\d{4}-\d{2}-\d{2}$/.test(paramDate)) setDate(paramDate);
+  }, [paramDate]);
 
   useEffect(() => {
     void (async () => {

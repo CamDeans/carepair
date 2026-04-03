@@ -15,6 +15,14 @@ import { radius, spacing } from '@/src/theme/tokens';
 
 const STEPS = ['Basics', 'Experience & pay', 'Safety & references', 'Photos & documents', 'Location', 'Review'] as const;
 
+/** Must match server defaults in `profilePublish` (photos + verification docs). */
+const MIN_PROFILE_PHOTOS = 1;
+const MIN_VERIFICATION_DOCS = 1;
+
+function countFilledUrls(urls: string[]): number {
+  return urls.map((u) => u.trim()).filter(Boolean).length;
+}
+
 export default function CaregiverSetupScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
   const refreshMe = useAuthStore((s) => s.refreshMe);
@@ -61,6 +69,9 @@ export default function CaregiverSetupScreen() {
         row2: { paddingVertical: spacing.sm },
         chk: { fontSize: 16, color: c.text, fontFamily: f.regular },
         flex: { flex: 1 },
+        reqOk: { color: c.success, fontWeight: '600', fontFamily: f.semibold, marginTop: spacing.sm },
+        reqBad: { color: c.danger, fontWeight: '600', fontFamily: f.semibold, marginTop: spacing.sm },
+        docLine: { color: c.textSecondary, fontSize: 14, marginTop: spacing.xs, fontFamily: f.regular },
       }),
     [c, f],
   );
@@ -92,6 +103,17 @@ export default function CaregiverSetupScreen() {
   };
 
   const next = async () => {
+    if (step === 3) {
+      const nPhotos = countFilledUrls(photoUrls);
+      const nDocs = countFilledUrls(docUrls);
+      if (nPhotos < MIN_PROFILE_PHOTOS || nDocs < MIN_VERIFICATION_DOCS) {
+        Alert.alert(
+          'Photos & documents required',
+          `Add at least ${MIN_PROFILE_PHOTOS} profile photo(s) and ${MIN_VERIFICATION_DOCS} verification document (certification, ID scan, or résumé image) before continuing. This backs the experience you listed and is required to publish.`,
+        );
+        return;
+      }
+    }
     try {
       await savePartial();
       setStep((s) => Math.min(s + 1, STEPS.length - 1));
@@ -103,6 +125,15 @@ export default function CaregiverSetupScreen() {
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
   const finish = async () => {
+    const nPhotos = countFilledUrls(photoUrls);
+    const nDocs = countFilledUrls(docUrls);
+    if (nPhotos < MIN_PROFILE_PHOTOS || nDocs < MIN_VERIFICATION_DOCS) {
+      Alert.alert(
+        'Complete documents',
+        `You need at least ${MIN_PROFILE_PHOTOS} photo(s) and ${MIN_VERIFICATION_DOCS} verification document. Go back to the Photos & documents step to add them.`,
+      );
+      return;
+    }
     try {
       await savePartial();
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -208,14 +239,37 @@ export default function CaregiverSetupScreen() {
         <>
           <Text style={styles.h}>Profile photos</Text>
           <Text style={styles.p}>
-            At least one profile photo and one verification document (certification, ID, or résumé image/PDF) are required
-            to publish.
+            At least {MIN_PROFILE_PHOTOS} profile photo and {MIN_VERIFICATION_DOCS} verification document (certification, government ID,
+            or résumé image) are required before you can continue. Documents support the experience you shared and are required to go live.
           </Text>
           <PhotoSlotsRow urls={photoUrls} maxSlots={4} slotSize={76} borderRadius={radius.md} />
           <Button title="Add photo" onPress={() => void pickAndUpload('photo')} />
-          <Text style={[styles.h, { marginTop: spacing.lg }]}>Documents / certs ({docUrls.length})</Text>
-          <Text style={styles.p}>Upload at least one document before publishing.</Text>
+          {countFilledUrls(photoUrls) >= MIN_PROFILE_PHOTOS ? (
+            <Text style={styles.reqOk}>✓ {countFilledUrls(photoUrls)} profile photo(s)</Text>
+          ) : (
+            <Text style={styles.reqBad}>
+              Need {MIN_PROFILE_PHOTOS} photo — you have {countFilledUrls(photoUrls)}
+            </Text>
+          )}
+
+          <Text style={[styles.h, { marginTop: spacing.lg }]}>Verification documents ({countFilledUrls(docUrls)})</Text>
+          <Text style={styles.p}>
+            Upload something that backs your experience (e.g. childcare certification, first-aid card, student ID in a relevant program, or a
+            clear photo of a one-page résumé).
+          </Text>
           <Button title="Add document" variant="secondary" onPress={() => void pickAndUpload('doc')} />
+          {docUrls.filter((u) => u.trim()).map((u, i) => (
+            <Text key={`${u}-${i}`} style={styles.docLine} numberOfLines={1}>
+              Document {i + 1}: uploaded
+            </Text>
+          ))}
+          {countFilledUrls(docUrls) >= MIN_VERIFICATION_DOCS ? (
+            <Text style={styles.reqOk}>✓ Verification document on file</Text>
+          ) : (
+            <Text style={styles.reqBad}>
+              You must add at least {MIN_VERIFICATION_DOCS} document to continue to Location.
+            </Text>
+          )}
         </>
       )}
 
@@ -236,7 +290,16 @@ export default function CaregiverSetupScreen() {
       <View style={styles.row}>
         {step > 0 ? <Button title="Back" variant="secondary" onPress={back} style={styles.flex} /> : <View style={styles.flex} />}
         {step < STEPS.length - 1 ? (
-          <Button title="Next" onPress={() => void next()} style={styles.flex} disabled={step === 0 && !form.displayName.trim()} />
+          <Button
+            title="Next"
+            onPress={() => void next()}
+            style={styles.flex}
+            disabled={
+              (step === 0 && !form.displayName.trim()) ||
+              (step === 3 &&
+                (countFilledUrls(photoUrls) < MIN_PROFILE_PHOTOS || countFilledUrls(docUrls) < MIN_VERIFICATION_DOCS))
+            }
+          />
         ) : (
           <Button title="Publish" onPress={() => void finish()} style={styles.flex} />
         )}

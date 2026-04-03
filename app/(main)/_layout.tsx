@@ -19,6 +19,9 @@ export default function MainLayout() {
       gestureEnabled: true,
       fullScreenGestureEnabled: true,
       animation: 'slide_from_right' as const,
+      /** Avoid iOS showing the route group name "(tabs)" as the back label; chevron-only is cleaner. */
+      headerBackTitle: '',
+      headerBackTitleVisible: false,
     }),
     [c],
   );
@@ -34,9 +37,16 @@ export default function MainLayout() {
 
   return (
     <Stack screenOptions={screenOptions}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="caregiver/[id]" options={{ title: 'Caregiver', headerBackTitle: '' }} />
-      <Stack.Screen name="family/[id]" options={{ title: 'Family', headerBackTitle: '' }} />
+      <Stack.Screen
+        name="(tabs)"
+        options={{
+          headerShown: false,
+          /** Used as the “previous screen” title when popping back from nested routes (not shown as a header). */
+          title: 'Home',
+        }}
+      />
+      <Stack.Screen name="caregiver/[id]" options={{ title: 'Caregiver' }} />
+      <Stack.Screen name="family/[id]" options={{ title: 'Family' }} />
       <Stack.Screen name="conversation/[id]" options={{ title: 'Messages' }} />
       <Stack.Screen name="connection-request" options={{ title: 'Connect', presentation: 'modal' }} />
       <Stack.Screen name="meetup-schedule" options={{ title: 'Schedule meet-up' }} />
