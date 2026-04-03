@@ -48,6 +48,17 @@ export async function httpJson<T>(url: string, options: HttpJsonOptions = {}): P
     if (e instanceof Error && e.name === 'AbortError') {
       throw new ApiError('Request timed out. Check your connection.', undefined, e);
     }
+    if (e instanceof Error) {
+      const m = e.message.toLowerCase();
+      if (
+        m.includes('network request failed') ||
+        m.includes('failed to fetch') ||
+        m.includes('load failed') ||
+        m.includes('internet connection appears to be offline')
+      ) {
+        throw new ApiError('No internet connection. Check Wi-Fi or mobile data, then try again.', undefined, e);
+      }
+    }
     logger.error('httpJson', e);
     throw new ApiError('Network error. Try again.', undefined, e);
   } finally {

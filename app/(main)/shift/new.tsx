@@ -91,7 +91,10 @@ export default function NewShiftScreen() {
       });
       router.back();
     } catch (e) {
-      Alert.alert('Shift', e instanceof Error ? e.message : 'Failed');
+      const msg = e instanceof Error ? e.message : 'Failed';
+      const overlap =
+        /overlap/i.test(msg) || /another shift/i.test(msg) || /different slot/i.test(msg);
+      Alert.alert(overlap ? 'Scheduling conflict' : 'Shift', msg);
     }
   };
 

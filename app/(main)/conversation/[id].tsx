@@ -3,8 +3,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/src/components/ui/Button';
+import { ProfilePhoto } from '@/src/components/ui/ProfilePhoto';
 import { TextField } from '@/src/components/ui/TextField';
+import type { ChatMessageDto } from '@/src/lib/serverApi';
 import * as api from '@/src/lib/serverApi';
+import { pickProfilePhotoUri } from '@/src/lib/profilePhoto';
 import { getChatSocket } from '@/src/lib/socket';
 import { useAuthStore } from '@/src/store/authStore';
 import { useInboxUnreadStore } from '@/src/store/inboxUnreadStore';
@@ -12,13 +15,21 @@ import { useCarePairUi } from '@/src/theme/CarePairUiContext';
 import { createTypographyStyles } from '@/src/theme/typography';
 import { layout, radius, spacing } from '@/src/theme/tokens';
 
-type Row = { id: string; senderId: string; body: string; createdAt: string };
+const AVATAR = 36;
 
 export default function ConversationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors: c, fonts: f } = useCarePairUi();
-  const myId = useAuthStore((s) => s.user?.id);
-  const [messages, setMessages] = useState<Row[]>([]);
+  const user = useAuthStore((s) => s.user);
+  const myId = user?.id;
+  const myPhotoUri = useMemo(() => {
+    if (!user) return null;
+    if (user.role === 'family') return pickProfilePhotoUri(user.familyProfile ?? undefined);
+    if (user.role === 'caregiver') return pickProfilePhotoUri(user.caregiverProfile ?? undefined);
+    return null;
+  }, [user]);
+
+  const [messages, setMessages] = useState<ChatMessageDto[]>([]);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(true);
   const listRef = useRef<FlatList>(null);
@@ -34,15 +45,23 @@ export default function ConversationScreen() {
         paddingTop: layout.screenPaddingY,
         paddingBottom: spacing.xl,
       },
+      row: {
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        marginBottom: spacing.sm,
+        maxWidth: '100%',
+      },
+      rowMe: { justifyContent: 'flex-end' },
+      rowThem: { justifyContent: 'flex-start' },
+      rowFill: { flex: 1, minWidth: 0 },
       bubble: {
-        maxWidth: '85%',
+        maxWidth: '78%',
         paddingVertical: spacing.sm + 2,
         paddingHorizontal: spacing.md,
         borderRadius: radius.lg,
-        marginBottom: spacing.sm,
       },
-      them: { alignSelf: 'flex-start', backgroundColor: c.surface, borderWidth: 1, borderColor: c.border },
-      me: { alignSelf: 'flex-end', backgroundColor: c.primary },
+      them: { backgroundColor: c.surface, borderWidth: 1, borderColor: c.border },
+      me: { backgroundColor: c.primary },
       bubbleText: { ...t.body },
       meText: { color: c.onPrimary, fontFamily: f.regular },
       composer: {
@@ -55,7 +74,7 @@ export default function ConversationScreen() {
     });
   }, [c, f]);
 
-  const appendUnique = useCallback((m: Row) => {
+  const appendUnique = useCallback((m: ChatMessageDto) => {
     if (seenIds.current.has(m.id)) return;
     seenIds.current.add(m.id);
     setMessages((prev) => [...prev, m]);
@@ -93,7 +112,7 @@ export default function ConversationScreen() {
         const socket = await getChatSocket();
         const handler = (payload: {
           conversationId: string;
-          message: { id: string; senderId: string; body: string; createdAt: string };
+          message: ChatMessageDto;
         }) => {
           if (payload.conversationId !== id) return;
           appendUnique(payload.message);
@@ -128,6 +147,11 @@ export default function ConversationScreen() {
     }
   };
 
+  const photoFor = (m: ChatMessageDto, fromMe: boolean) => {
+    if (fromMe) return m.senderPhotoUri ?? myPhotoUri;
+    return m.senderPhotoUri;
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.flex}
@@ -146,9 +170,44 @@ export default function ConversationScreen() {
         onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
         renderItem={({ item }) => {
           const fromMe = item.senderId === myId;
+          const uri = photoFor(item, fromMe);
           return (
-            <View style={[styles.bubble, fromMe ? styles.me : styles.them]}>
-              <Text style={[styles.bubbleText, fromMe && styles.meText]}>{item.body}</Text>
+            <View style={[styles.row, fromMe ? styles.rowMe : styles.rowThem]}>
+              {fromMe ? (
+                <>
+                  <View style={styles.rowFill} />
+                  <View style={[styles.bubble, styles.me]}>
+                    <Text style={[styles.bubbleText, styles.meText]}>{item.body}</Text>
+                  </View>
+                  <ProfilePhoto
+                    uri={uri}
+                    style={{
+                      width: AVATAR,
+                      height: AVATAR,
+                      borderRadius: AVATAR / 2,
+                      marginLeft: spacing.sm,
+                    }}
+                    accessibilityLabel="Your profile"
+                  />
+                </>
+              ) : (
+                <>
+                  <ProfilePhoto
+                    uri={uri}
+                    style={{
+                      width: AVATAR,
+                      height: AVATAR,
+                      borderRadius: AVATAR / 2,
+                      marginRight: spacing.sm,
+                    }}
+                    accessibilityLabel="Sender profile"
+                  />
+                  <View style={[styles.bubble, styles.them]}>
+                    <Text style={styles.bubbleText}>{item.body}</Text>
+                  </View>
+                  <View style={styles.rowFill} />
+                </>
+              )}
             </View>
           );
         }}

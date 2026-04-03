@@ -1,5 +1,6 @@
 import { getAccessToken } from '@/src/lib/authToken';
 import { requireApiBase } from '@/src/lib/config';
+import { httpJson } from '@/src/lib/http';
 import type { StaffRegisterRole, UserRole } from '@/src/types/models';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -13,24 +14,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`${base}${path}`, { ...init, headers });
-  const text = await res.text();
-  let data: unknown = null;
-  if (text) {
-    try {
-      data = JSON.parse(text) as unknown;
-    } catch {
-      data = { message: text };
-    }
-  }
-  if (!res.ok) {
-    const msg =
-      typeof data === 'object' && data !== null && 'message' in data
-        ? String((data as { message: unknown }).message)
-        : res.statusText;
-    throw new Error(msg || `HTTP ${res.status}`);
-  }
-  return data as T;
+  return httpJson<T>(`${base}${path}`, {
+    ...init,
+    headers,
+  });
 }
 
 export type NotificationPrefs = {
@@ -99,6 +86,11 @@ export async function portalTeamAccessPatch(patch: Record<string, boolean>) {
   });
 }
 
+/** Admin only: reset team section toggles to server defaults (overrides prior ACL saves). */
+export async function portalTeamAccessReset() {
+  return request<TeamPortalAccessResponse>('/portal/team-access/reset', { method: 'POST' });
+}
+
 export async function portalDashboardSummary() {
   return request<{ headline: string; metrics: { label: string; value: number }[] }>('/portal/dashboard-summary');
 }
@@ -129,6 +121,39 @@ export type PortalTesterRow = {
 
 export async function portalTesters() {
   return request<{ testers: PortalTesterRow[] }>('/portal/testers');
+}
+
+export type PortalValuedTesterAllowlistResponse = {
+  databaseEmails: string[];
+  envAllowlistConfigured: boolean;
+  envAllowlistCount: number;
+  requiresAllowlist: boolean;
+  valuedTesterMax: number;
+  activeTesterCount: number;
+};
+
+export async function portalValuedTesterAllowlist() {
+  return request<PortalValuedTesterAllowlistResponse>('/portal/valued-tester-allowlist');
+}
+
+export async function portalValuedTesterAllowlistPatch(body: { add?: string; remove?: string }) {
+  return request<{ databaseEmails: string[] }>('/portal/valued-tester-allowlist', {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+/** Admin only: remove all portal-managed tester emails (env STAFF_VALUED_TESTER_EMAILS unchanged). */
+export async function portalValuedTesterAllowlistClearDatabase() {
+  return request<{ databaseEmails: string[] }>('/portal/valued-tester-allowlist/clear-database', {
+    method: 'POST',
+  });
+}
+
+export async function portalTesterRevoke(userId: string) {
+  return request<{ ok: boolean }>(`/portal/testers/${encodeURIComponent(userId)}`, {
+    method: 'DELETE',
+  });
 }
 
 export async function portalRevenueSummary() {
@@ -294,15 +319,11 @@ export async function uploadFile(uri: string, filename: string, mimeType: string
   const token = await getAccessToken();
   const form = new FormData();
   form.append('file', { uri, name: filename, type: mimeType } as unknown as Blob);
-  const res = await fetch(`${base}/upload/file`, {
+  return httpJson<{ url: string }>(`${base}/upload/file`, {
     method: 'POST',
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: form,
   });
-  const text = await res.text();
-  const data = text ? (JSON.parse(text) as { url?: string; message?: string }) : {};
-  if (!res.ok) throw new Error(data.message ?? res.statusText);
-  return data as { url: string };
 }
 
 export type ConversationRow = {
@@ -328,17 +349,23 @@ export async function conversationOpen(peerUserId: string) {
   return request<{ conversationId: string }>(`/conversations/open/${peerUserId}`, { method: 'POST' });
 }
 
+export type ChatMessageDto = {
+  id: string;
+  senderId: string;
+  body: string;
+  createdAt: string;
+  senderPhotoUri: string | null;
+};
+
 export async function messagesList(conversationId: string) {
-  return request<{
-    messages: { id: string; senderId: string; body: string; createdAt: string }[];
-  }>(`/conversations/${conversationId}/messages`);
+  return request<{ messages: ChatMessageDto[] }>(`/conversations/${conversationId}/messages`);
 }
 
 export async function messageSend(conversationId: string, body: string) {
-  return request<{ message: { id: string; senderId: string; body: string; createdAt: string } }>(
-    `/conversations/${conversationId}/messages`,
-    { method: 'POST', body: JSON.stringify({ body }) },
-  );
+  return request<{ message: ChatMessageDto }>(`/conversations/${conversationId}/messages`, {
+    method: 'POST',
+    body: JSON.stringify({ body }),
+  });
 }
 
 export type ShiftDto = {
@@ -408,6 +435,8 @@ export type CareNoteRow = {
   authorRole: UserRole;
   body: string;
   authorUserId: string;
+  familyUserId: string;
+  caregiverUserId: string;
 };
 
 export async function notesList() {
@@ -494,5 +523,12 @@ export async function meetupProposalCreate(toUserId: string, when: string, where
   return request<{ proposal: MeetupProposalRow }>('/meetup-proposals', {
     method: 'POST',
     body: JSON.stringify({ toUserId, when, where }),
+  });
+}
+
+export async function meetupProposalPatch(proposalId: string, status: 'accepted' | 'declined' | 'cancelled') {
+  return request<{ proposal: MeetupProposalRow }>(`/meetup-proposals/${proposalId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
   });
 }

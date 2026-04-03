@@ -1,5 +1,12 @@
-import { ReactNode, useMemo } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, View, ViewStyle } from 'react-native';
+import { ReactElement, ReactNode, useMemo } from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  type RefreshControlProps,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -16,10 +23,19 @@ type Props = {
    * win over vertical scroll when appropriate.
    */
   directionalLockIOS?: boolean;
+  /** Passed to the scroll view when `scroll` is true (e.g. pull-to-refresh). */
+  refreshControl?: ReactElement<RefreshControlProps>;
   style?: ViewStyle;
 };
 
-export function Screen({ children, scroll, contentPaddingH = true, directionalLockIOS, style }: Props) {
+export function Screen({
+  children,
+  scroll,
+  contentPaddingH = true,
+  directionalLockIOS,
+  refreshControl,
+  style,
+}: Props) {
   const { colors: c } = useCarePairUi();
   const styles = useMemo(
     () =>
@@ -66,6 +82,7 @@ export function Screen({ children, scroll, contentPaddingH = true, directionalLo
             showsVerticalScrollIndicator={false}
             nestedScrollEnabled
             directionalLockEnabled={Platform.OS === 'ios' && !!directionalLockIOS}
+            refreshControl={refreshControl}
             bounces>
             {children}
           </GHScrollView>

@@ -8,11 +8,11 @@ import { Button } from '@/src/components/ui/Button';
 import { Card } from '@/src/components/ui/Card';
 import { Screen } from '@/src/components/ui/Screen';
 import * as api from '@/src/lib/serverApi';
-import type { CareAccessDto, MatchPeer, ShiftDto } from '@/src/lib/serverApi';
+import type { CareAccessDto, CareNoteRow, MatchPeer, ShiftDto } from '@/src/lib/serverApi';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
 import { createTypographyStyles } from '@/src/theme/typography';
-import { layout, spacing } from '@/src/theme/tokens';
+import { layout, radius, spacing } from '@/src/theme/tokens';
 
 const HISTORY_CAP = 25;
 
@@ -36,15 +36,30 @@ function shiftRowA11yLabel(s: ShiftDto, segment: 'upcoming' | 'history') {
     : `Open past shift, ${when}, ${status}`;
 }
 
+function noteForPair(n: CareNoteRow, me: string, peer: string): boolean {
+  return (
+    (n.familyUserId === me && n.caregiverUserId === peer) ||
+    (n.caregiverUserId === me && n.familyUserId === peer)
+  );
+}
+
 export default function CareSpaceScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
   const role = useAuthStore((s) => s.user?.role);
+  const myId = useAuthStore((s) => s.user?.id);
   const refreshMe = useAuthStore((s) => s.refreshMe);
   const [access, setAccess] = useState<CareAccessDto | null>(null);
   const [shifts, setShifts] = useState<ShiftDto[]>([]);
-  const [latestNote, setLatestNote] = useState<string | null>(null);
+  const [notes, setNotes] = useState<CareNoteRow[]>([]);
   const [matches, setMatches] = useState<MatchPeer[]>([]);
+  const [selectedPeerId, setSelectedPeerId] = useState('');
   const [loading, setLoading] = useState(true);
+
+  const carePeers = useMemo(() => {
+    if (role === 'family') return matches.filter((m) => m.role === 'caregiver');
+    if (role === 'caregiver') return matches.filter((m) => m.role === 'family');
+    return [];
+  }, [matches, role]);
 
   useFocusEffect(
     useCallback(() => {
@@ -61,14 +76,26 @@ export default function CareSpaceScreen() {
           if (cancelled) return;
           setAccess(a);
           setShifts(sh.shifts);
-          setLatestNote(n.notes[0]?.body ?? null);
+          setNotes(n.notes);
           setMatches(m.matches);
+          const peers =
+            role === 'family'
+              ? m.matches.filter((x) => x.role === 'caregiver')
+              : role === 'caregiver'
+                ? m.matches.filter((x) => x.role === 'family')
+                : [];
+          setSelectedPeerId((cur) => {
+            if (cur && peers.some((p) => p.id === cur)) return cur;
+            if (peers.length >= 1) return peers[0].id;
+            return '';
+          });
         } catch {
           if (!cancelled) {
             setAccess(null);
             setShifts([]);
-            setLatestNote(null);
+            setNotes([]);
             setMatches([]);
+            setSelectedPeerId('');
           }
         } finally {
           if (!cancelled) setLoading(false);
@@ -77,7 +104,7 @@ export default function CareSpaceScreen() {
       return () => {
         cancelled = true;
       };
-    }, []),
+    }, [role]),
   );
 
   const startTrial = async () => {
@@ -94,20 +121,35 @@ export default function CareSpaceScreen() {
 
   const unlocked = access != null && access.canUseCareSpace;
 
+  const shiftsForPeer = useMemo(() => {
+    if (!selectedPeerId) return shifts;
+    if (role === 'family') return shifts.filter((s) => s.caregiverUserId === selectedPeerId);
+    if (role === 'caregiver') return shifts.filter((s) => s.familyUserId === selectedPeerId);
+    return shifts;
+  }, [shifts, selectedPeerId, role]);
+
+  const latestNoteForPeer = useMemo(() => {
+    if (!myId || !selectedPeerId) return null;
+    const relevant = notes.filter((n) => noteForPair(n, myId, selectedPeerId));
+    if (relevant.length === 0) return null;
+    const sorted = [...relevant].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+    return sorted[0]?.body ?? null;
+  }, [notes, myId, selectedPeerId]);
+
   const { next, historyRows, moreUpcoming } = useMemo(() => {
     const now = new Date();
-    const upcomingRaw = shifts.filter((s) => s.status !== 'canceled' && !isPastShift(s, now));
+    const upcomingRaw = shiftsForPeer.filter((s) => s.status !== 'canceled' && !isPastShift(s, now));
     const upcomingSorted = [...upcomingRaw].sort((a, b) => shiftStart(a).getTime() - shiftStart(b).getTime());
     const first = upcomingSorted[0] ?? null;
-    const historyCandidates = shifts.filter((s) => s.status === 'canceled' || isPastShift(s, now));
+    const historyCandidates = shiftsForPeer.filter((s) => s.status === 'canceled' || isPastShift(s, now));
     const historySorted = [...historyCandidates].sort((a, b) => shiftStart(b).getTime() - shiftStart(a).getTime());
     const historyRows = historySorted.slice(0, HISTORY_CAP);
     const moreUpcoming = first ? upcomingSorted.filter((s) => s.id !== first.id) : upcomingSorted;
     return { next: first, historyRows, moreUpcoming };
-  }, [shifts]);
+  }, [shiftsForPeer]);
   const marked = useMemo(
-    () => Object.fromEntries(shifts.map((s) => [s.date, { marked: true, dotColor: c.primary }])),
-    [shifts, c.primary],
+    () => Object.fromEntries(shiftsForPeer.map((s) => [s.date, { marked: true, dotColor: c.primary }])),
+    [shiftsForPeer, c.primary],
   );
   const calendarTheme = useMemo(
     () => ({ todayTextColor: c.primary, selectedDayBackgroundColor: c.primary }),
@@ -146,9 +188,18 @@ export default function CareSpaceScreen() {
       historyNotes: { ...t.caption, fontSize: 13, marginTop: 2 },
       historyStatus: { ...t.caption, fontSize: 13, fontWeight: '600', fontFamily: f.semibold },
       notePreview: { marginTop: spacing.lg },
+      pick: {
+        padding: spacing.md,
+        borderRadius: radius.lg,
+        borderWidth: 1,
+        borderColor: c.border,
+        marginBottom: spacing.sm,
+      },
+      pickOn: { borderColor: c.primary, backgroundColor: c.primaryMuted },
+      pickText: { ...t.body },
+      pickerHint: { ...t.caption, marginBottom: spacing.sm },
     });
   }, [c, f]);
-  const defaultCaregiverId = matches.find((m) => m.role === 'caregiver')?.id;
 
   if (loading && !access) {
     return (
@@ -173,10 +224,32 @@ export default function CareSpaceScreen() {
     );
   }
 
+  const peerLabel = role === 'family' ? 'caregiver' : 'family';
+
   return (
     <Screen scroll>
       <Text style={styles.h1}>CareSpace</Text>
       <Text style={styles.sub}>Next shift, calendar, and notes — shared with your matches.</Text>
+      {carePeers.length > 1 ? (
+        <>
+          <Text style={styles.sectionTitle}>Which {peerLabel}?</Text>
+          <Text style={styles.pickerHint}>Shifts and the note preview below are for the selected match.</Text>
+          {carePeers.map((m) => (
+            <Pressable
+              key={m.id}
+              style={[styles.pick, selectedPeerId === m.id && styles.pickOn]}
+              accessibilityRole="button"
+              accessibilityLabel={`CareSpace with ${m.displayName}${m.city ? `, ${m.city}` : ''}`}
+              accessibilityState={{ selected: selectedPeerId === m.id }}
+              onPress={() => setSelectedPeerId(m.id)}>
+              <Text style={styles.pickText} importantForAccessibility="no">
+                {m.displayName}
+                {m.city ? ` · ${m.city}` : ''}
+              </Text>
+            </Pressable>
+          ))}
+        </>
+      ) : null}
       {next ? (
         <Card style={styles.card}>
           <Text style={styles.cardTitle}>Next shift</Text>
@@ -257,11 +330,11 @@ export default function CareSpaceScreen() {
           <Button
             title="Add shift"
             onPress={() => {
-              if (!defaultCaregiverId) {
+              if (!selectedPeerId) {
                 Alert.alert('No caregiver yet', 'Match with a caregiver from Discover before scheduling a shift.');
                 return;
               }
-              router.push({ pathname: '/shift/new', params: { caregiverUserId: defaultCaregiverId } });
+              router.push({ pathname: '/shift/new', params: { caregiverUserId: selectedPeerId } });
             }}
           />
         ) : null}
@@ -269,8 +342,7 @@ export default function CareSpaceScreen() {
           title="Care notes"
           variant="secondary"
           onPress={() => {
-            const peer = matches[0]?.id;
-            if (peer) router.push({ pathname: '/care-notes', params: { peerUserId: peer } });
+            if (selectedPeerId) router.push({ pathname: '/care-notes', params: { peerUserId: selectedPeerId } });
             else router.push('/care-notes');
           }}
         />
@@ -278,7 +350,7 @@ export default function CareSpaceScreen() {
       <View style={styles.notePreview}>
         <Text style={styles.cardTitle}>Latest note</Text>
         <Text style={styles.cardBody} numberOfLines={3}>
-          {latestNote ?? 'No notes yet.'}
+          {latestNoteForPeer ?? 'No notes yet.'}
         </Text>
       </View>
     </Screen>

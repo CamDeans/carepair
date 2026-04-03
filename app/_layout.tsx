@@ -5,11 +5,13 @@ import * as Sentry from '@sentry/react-native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { Fragment, useEffect } from 'react';
+import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { NetworkOfflineBanner } from '@/src/components/NetworkOfflineBanner';
 import { RootErrorBoundary } from '@/src/components/RootErrorBoundary';
 import { logEnvDiagnostics } from '@/src/lib/envDiagnostics';
 import { CarePairUiProvider, useCarePairUi } from '@/src/theme/CarePairUiContext';
@@ -65,11 +67,16 @@ function RootLayoutNav() {
   return (
     <ThemeProvider
       value={colorScheme === 'dark' ? carePairDarkNavigationTheme : carePairLightNavigationTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(guest)" />
-        <Stack.Screen name="(main)" />
-      </Stack>
+      <View style={{ flex: 1 }}>
+        <NetworkOfflineBanner />
+        <View style={{ flex: 1 }}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(guest)" />
+            <Stack.Screen name="(main)" />
+          </Stack>
+        </View>
+      </View>
     </ThemeProvider>
   );
 }

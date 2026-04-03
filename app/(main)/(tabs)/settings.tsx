@@ -13,12 +13,12 @@ import { layout, radius, spacing } from '@/src/theme/tokens';
 export default function SettingsScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
   const email = useAuthStore((s) => s.user?.email);
-  const canStaffPortal = useAuthStore((s) => s.user?.canOpenStaffPortal === true);
   const calendarLinked = useAuthStore((s) => s.user?.googleCalendarConnected === true);
   const refreshMe = useAuthStore((s) => s.refreshMe);
   const logout = useAuthStore((s) => s.logout);
   const [calendarOpening, setCalendarOpening] = useState(false);
   const [calendarDisconnecting, setCalendarDisconnecting] = useState(false);
+  const [staffPortalAllowed, setStaffPortalAllowed] = useState(false);
 
   const styles = useMemo(() => {
     const t = createTypographyStyles(c, f);
@@ -66,7 +66,15 @@ export default function SettingsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      void refreshMe();
+      void (async () => {
+        await refreshMe();
+        try {
+          const pm = await api.portalMe();
+          setStaffPortalAllowed(pm.canOpenStaffPortal === true);
+        } catch {
+          setStaffPortalAllowed(false);
+        }
+      })();
     }, [refreshMe]),
   );
 
@@ -137,7 +145,7 @@ export default function SettingsScreen() {
       <Text style={styles.h1}>Settings</Text>
       <Text style={styles.email}>{email}</Text>
       <View style={styles.block}>
-        {canStaffPortal ? (
+        {staffPortalAllowed ? (
           <Row title="Staff portal" onPress={() => router.push('/staff-portal' as Href)} />
         ) : null}
         <Row title="Edit profile" onPress={() => router.push('/profile-edit')} />

@@ -1,6 +1,6 @@
 import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { Screen } from '@/src/components/ui/Screen';
 import * as api from '@/src/lib/serverApi';
@@ -11,6 +11,7 @@ import { layout, radius, spacing } from '@/src/theme/tokens';
 export default function StaffPortalHomeScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState<api.PortalMeResponse | null>(null);
 
   const styles = useMemo(() => {
@@ -39,17 +40,20 @@ export default function StaffPortalHomeScreen() {
     });
   }, [c, f]);
 
-  const load = useCallback(() => {
+  const load = useCallback((opts?: { silent?: boolean }) => {
     let cancelled = false;
     (async () => {
-      setLoading(true);
+      if (!opts?.silent) setLoading(true);
       try {
         const pm = await api.portalMe();
         if (!cancelled) setData(pm);
       } catch {
         if (!cancelled) setData(null);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     })();
     return () => {
@@ -58,6 +62,11 @@ export default function StaffPortalHomeScreen() {
   }, []);
 
   useFocusEffect(load);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    void load({ silent: true });
+  }, [load]);
 
   if (loading) {
     return (
@@ -78,7 +87,11 @@ export default function StaffPortalHomeScreen() {
   const entries = (Object.keys(data.sections) as string[]).filter((k) => data.sections![k]);
 
   return (
-    <Screen scroll>
+    <Screen
+      scroll
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />
+      }>
       <Text style={styles.h1}>Staff portal</Text>
       <Text style={styles.sub}>
         Signed in as {data.staffRole}. Open a section below. Team members only see what the admin enables.

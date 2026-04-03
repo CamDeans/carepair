@@ -24,6 +24,7 @@ export default function TeamAccessScreen() {
   const [labels, setLabels] = useState<Record<string, string>>({});
   const [draft, setDraft] = useState<Record<string, boolean>>({});
   const [savedCaptionText, setSavedCaptionText] = useState<string | null>(null);
+  const [resetting, setResetting] = useState(false);
 
   const styles = useMemo(
     () =>
@@ -88,6 +89,35 @@ export default function TeamAccessScreen() {
     }
   };
 
+  const resetToDefaults = () => {
+    Alert.alert(
+      'Reset team portal ACL?',
+      'This restores the default on/off map for team accounts. Admins always keep full access. Team-only changes to valued testers, allowlists, etc. are not undone — use Valued testers for allowlist reset.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: () => {
+            void (async () => {
+              setResetting(true);
+              try {
+                const res = await api.portalTeamAccessReset();
+                setDraft({ ...res.teamSectionAccess });
+                setSavedCaptionText(savedCaption(res));
+                Alert.alert('Reset', 'Team section access restored to defaults.');
+              } catch (e) {
+                Alert.alert('Reset failed', e instanceof Error ? e.message : 'Try again');
+              } finally {
+                setResetting(false);
+              }
+            })();
+          },
+        },
+      ],
+    );
+  };
+
   if (loading) {
     return (
       <Screen>
@@ -109,7 +139,9 @@ export default function TeamAccessScreen() {
   return (
     <Screen scroll={false}>
       <Text style={styles.sub}>
-        Turn sections on or off for the team account. The admin account always sees everything.
+        Turn sections on or off for team accounts. Admins always see every section and are never blocked by these
+        toggles. By default, team can use Valued testers (allowlist + revoke); turn it off here if you need to. Reset
+        restores server defaults (including that default).
       </Text>
       {savedCaptionText ? <Text style={styles.meta}>{savedCaptionText}</Text> : null}
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: spacing.xl }}>
@@ -126,6 +158,12 @@ export default function TeamAccessScreen() {
         ))}
       </ScrollView>
       <Button title={saving ? 'Saving…' : 'Save changes'} onPress={() => void save()} loading={saving} />
+      <Button
+        title={resetting ? 'Resetting…' : 'Reset to defaults (override ACL)'}
+        variant="secondary"
+        onPress={resetToDefaults}
+        disabled={saving || resetting}
+      />
     </Screen>
   );
 }
