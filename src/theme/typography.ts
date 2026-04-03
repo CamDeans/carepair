@@ -1,7 +1,7 @@
 import type { TextStyle } from 'react-native';
 
 import type { CarePairFonts } from '@/src/theme/CarePairUiContext';
-import type { CarePairPalette } from '@/src/theme/tokens';
+import { spacing, type CarePairPalette } from '@/src/theme/tokens';
 
 /**
  * CAREPAIR-VISUAL-SPEC.md — headings 600 / -0.02em / ~1.15 lh; body 400 / ~1.65 lh; labels 500 / 0.01em ls.
@@ -74,6 +74,27 @@ export function createTypographyStyles(c: CarePairPalette, f: CarePairFonts) {
     color: c.primary,
     fontFamily: f.medium,
   };
+  /** Profile / detail section labels — spec: headings 600, sentence case (no uppercase). */
+  const profileSectionLabel: TextStyle = {
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.26,
+    lineHeight: 18,
+    color: c.text,
+    marginBottom: spacing.sm,
+    fontFamily: f.semibold,
+  };
+  /** Name on photo overlay (Discover card) — 600 per visual spec. */
+  const heroOverlayName: TextStyle = {
+    fontSize: 22,
+    fontWeight: '600',
+    lineHeight: 28,
+    color: c.onImageText,
+    fontFamily: f.semibold,
+    textShadowColor: c.textShadowOnImage,
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  };
 
   return {
     screenTitle,
@@ -85,5 +106,7 @@ export function createTypographyStyles(c: CarePairPalette, f: CarePairFonts) {
     caption,
     label,
     link,
+    profileSectionLabel,
+    heroOverlayName,
   } as const;
 }

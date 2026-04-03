@@ -2,6 +2,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { EmptyState } from '@/src/components/ui/EmptyState';
 import { ProfilePhoto } from '@/src/components/ui/ProfilePhoto';
 import { Screen } from '@/src/components/ui/Screen';
 import * as api from '@/src/lib/serverApi';
@@ -19,7 +20,6 @@ export default function MessagesScreen() {
     const t = createTypographyStyles(c, f);
     return StyleSheet.create({
       h1: { ...t.screenTitle, marginBottom: layout.sectionGap - spacing.sm },
-      empty: { ...t.bodySecondary },
       row: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -86,7 +86,10 @@ export default function MessagesScreen() {
         </Pressable>
       ))}
       {!loading && rows.length === 0 ? (
-        <Text style={styles.empty}>No conversations yet. Match with someone, then open Messages from their profile.</Text>
+        <EmptyState
+          title="No conversations yet"
+          description="When you match with someone on Discover, you can message them from their profile or from here."
+        />
       ) : null}
     </Screen>
   );

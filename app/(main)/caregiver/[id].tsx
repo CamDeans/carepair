@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, Text, View, type TextStyle } from 'react-native';
 
 import { ProfilePhotoGallery } from '@/src/components/ProfilePhotoGallery';
 import { Button } from '@/src/components/ui/Button';
@@ -33,31 +33,10 @@ type CgProfile = {
   primaryPhotoIndex?: number;
 };
 
-function Section({
-  title,
-  children,
-  colors,
-  fonts,
-}: {
-  title: string;
-  children: ReactNode;
-  colors: { text: string; textSecondary: string; border: string };
-  fonts: { semibold: string | undefined };
-}) {
+function Section({ title, labelStyle, children }: { title: string; labelStyle: TextStyle; children: ReactNode }) {
   return (
     <View style={{ marginBottom: layout.sectionGap }}>
-      <Text
-        style={{
-          fontSize: 13,
-          fontWeight: '700',
-          color: colors.text,
-          marginBottom: spacing.sm,
-          letterSpacing: 0.4,
-          textTransform: 'uppercase',
-          fontFamily: fonts.semibold,
-        }}>
-        {title}
-      </Text>
+      <Text style={labelStyle}>{title}</Text>
       {children}
     </View>
   );
@@ -82,6 +61,7 @@ export default function CaregiverDetailScreen() {
   const styles = useMemo(() => {
     const t = createTypographyStyles(c, f);
     return StyleSheet.create({
+      sectionLabel: t.profileSectionLabel,
       miss: { ...t.bodySecondary },
       heroRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md, alignItems: 'flex-start' },
       leadPhoto: { width: 88, height: 88, borderRadius: radius.lg },
@@ -186,38 +166,38 @@ export default function CaregiverDetailScreen() {
       </View>
 
       {cg.bio ? (
-        <Section title="About" colors={c} fonts={f}>
+        <Section title="About" labelStyle={styles.sectionLabel}>
           <Text style={styles.body}>{cg.bio}</Text>
         </Section>
       ) : null}
 
       {cg.specializations ? (
-        <Section title="Specializations" colors={c} fonts={f}>
+        <Section title="Specializations" labelStyle={styles.sectionLabel}>
           <Text style={styles.body}>{cg.specializations}</Text>
         </Section>
       ) : null}
 
       {cg.certificationsSummary ? (
-        <Section title="Certifications & training" colors={c} fonts={f}>
+        <Section title="Certifications & training" labelStyle={styles.sectionLabel}>
           <Text style={styles.body}>{cg.certificationsSummary}</Text>
         </Section>
       ) : null}
 
       {cg.availabilitySummary ? (
-        <Section title="Availability" colors={c} fonts={f}>
+        <Section title="Availability" labelStyle={styles.sectionLabel}>
           <Text style={styles.body}>{cg.availabilitySummary}</Text>
         </Section>
       ) : null}
 
       {(cg.education || cg.languages) ? (
-        <Section title="Education & languages" colors={c} fonts={f}>
+        <Section title="Education & languages" labelStyle={styles.sectionLabel}>
           {cg.education ? <Text style={styles.body}>{cg.education}</Text> : null}
           {cg.languages ? <Text style={[styles.bodySecondary, { marginTop: spacing.xs }]}>Languages: {cg.languages}</Text> : null}
         </Section>
       ) : null}
 
       {cg.referencesSummary ? (
-        <Section title="References" colors={c} fonts={f}>
+        <Section title="References" labelStyle={styles.sectionLabel}>
           <Text style={styles.bodySecondary}>{cg.referencesSummary}</Text>
         </Section>
       ) : null}

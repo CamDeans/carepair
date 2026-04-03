@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 
 import { Button } from '@/src/components/ui/Button';
@@ -21,14 +22,12 @@ const THRESHOLD = SW * 0.22;
 /** Fling velocity (pt/s) — quick flick counts even slightly under distance. */
 const VELOCITY_FLING = 520;
 const FLING_MIN_DX = 36;
-const TAP_MAX_MOVE = 14;
 
 type Props = {
   card: DiscoverCardDto | null;
   onSwipeLeft: () => void;
   onSwipeRight: () => void;
   onHeart: () => void;
-  onOpenProfile?: () => void;
 };
 
 function Chip({ label, colors }: { label: string; colors: { bg: string; text: string } }) {
@@ -52,8 +51,9 @@ const chipStyles = StyleSheet.create({
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.sm },
 });
 
-export function SwipeDeck({ card, onSwipeLeft, onSwipeRight, onHeart, onOpenProfile }: Props) {
-  const { colors: c, fonts: f } = useCarePairUi();
+export function SwipeDeck({ card, onSwipeLeft, onSwipeRight, onHeart }: Props) {
+  const { colors: c, fonts: f, reduceMotion, motion: motionTokens } = useCarePairUi();
+  const motionMs = Math.max(1, motionTokens.baseMs);
   const { width: winW, height: winH } = useWindowDimensions();
   const tx = useSharedValue(0);
   const ty = useSharedValue(0);
@@ -67,10 +67,8 @@ export function SwipeDeck({ card, onSwipeLeft, onSwipeRight, onHeart, onOpenProf
 
   const onSwipeLeftRef = useRef(onSwipeLeft);
   const onSwipeRightRef = useRef(onSwipeRight);
-  const onOpenProfileRef = useRef(onOpenProfile);
   onSwipeLeftRef.current = onSwipeLeft;
   onSwipeRightRef.current = onSwipeRight;
-  onOpenProfileRef.current = onOpenProfile;
 
   const styles = useMemo(() => {
     const t = createTypographyStyles(c, f);
@@ -103,7 +101,7 @@ export function SwipeDeck({ card, onSwipeLeft, onSwipeRight, onHeart, onOpenProf
         top: undefined,
         height: 112,
         bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: c.overlayScrim,
       },
       heroTextBlock: {
         position: 'absolute',
@@ -111,29 +109,20 @@ export function SwipeDeck({ card, onSwipeLeft, onSwipeRight, onHeart, onOpenProf
         right: spacing.md,
         bottom: spacing.md,
       },
-      heroName: {
-        color: '#FFFFFF',
-        fontSize: 22,
-        lineHeight: 28,
-        fontWeight: '700',
-        fontFamily: f.semibold,
-        textShadowColor: 'rgba(0,0,0,0.35)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 4,
-      },
+      heroName: { ...t.heroOverlayName },
       heroMeta: {
-        color: 'rgba(255,255,255,0.92)',
+        color: c.onImageTextMuted,
         fontSize: 14,
         marginTop: 4,
         fontFamily: f.regular,
-        textShadowColor: 'rgba(0,0,0,0.35)',
+        textShadowColor: c.textShadowOnImage,
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 3,
       },
       body: {
         paddingHorizontal: layout.screenPaddingX,
         paddingTop: spacing.md,
-        paddingBottom: spacing.sm,
+        paddingBottom: spacing.md,
       },
       snippet: { ...t.sub, color: c.text, marginTop: spacing.xs, lineHeight: 22 },
       detail: { ...t.body, color: c.textSecondary, marginTop: spacing.sm, lineHeight: 22 },
@@ -144,22 +133,28 @@ export function SwipeDeck({ card, onSwipeLeft, onSwipeRight, onHeart, onOpenProf
         color: c.primaryDark,
         fontFamily: f.semibold,
       },
-      tapHint: {
-        ...t.caption,
-        fontSize: 12,
-        marginTop: spacing.md,
-        textAlign: 'center',
-        color: c.textSubtle,
-      },
       actions: {
         flexDirection: 'row',
         gap: spacing.sm,
-        marginTop: spacing.md,
-        paddingHorizontal: spacing.xs,
+        marginHorizontal: -layout.screenPaddingX,
+        paddingHorizontal: layout.screenPaddingX,
+        paddingTop: spacing.sm,
+        paddingBottom: spacing.sm,
+        marginBottom: -spacing.md,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: c.border,
+        backgroundColor: c.surface,
       },
       actionBtn: { flex: 1, minWidth: 0 },
-      empty: { padding: spacing.lg, alignItems: 'center' },
-      emptyText: { ...t.bodySecondary, textAlign: 'center' },
+      swipeHelp: {
+        ...t.caption,
+        fontSize: 12,
+        marginTop: spacing.sm,
+        textAlign: 'center',
+        color: c.textSubtle,
+        paddingHorizontal: layout.screenPaddingX,
+        paddingBottom: spacing.xs,
+      },
       swipeHint: {
         position: 'absolute',
         top: '38%',
@@ -184,13 +179,6 @@ export function SwipeDeck({ card, onSwipeLeft, onSwipeRight, onHeart, onOpenProf
     },
     [],
   );
-  const fireOpenProfile = useMemo(
-    () => () => {
-      onOpenProfileRef.current?.();
-    },
-    [],
-  );
-
   const gesture = useMemo(
     () =>
       Gesture.Pan()
@@ -207,24 +195,21 @@ export function SwipeDeck({ card, onSwipeLeft, onSwipeRight, onHeart, onOpenProf
           const passByDistance = dx < -THRESHOLD;
           const likeByFling = vx > VELOCITY_FLING && dx > FLING_MIN_DX;
           const passByFling = vx < -VELOCITY_FLING && dx < -FLING_MIN_DX;
+          const rm = reduceMotion;
+          const dur = motionMs;
 
           if (likeByDistance || likeByFling) {
             runOnJS(fireSwipeRight)();
-            tx.value = withSpring(SW * 1.5);
+            tx.value = rm ? withTiming(SW * 1.5, { duration: dur }) : withSpring(SW * 1.5);
           } else if (passByDistance || passByFling) {
             runOnJS(fireSwipeLeft)();
-            tx.value = withSpring(-SW * 1.5);
+            tx.value = rm ? withTiming(-SW * 1.5, { duration: dur }) : withSpring(-SW * 1.5);
           } else {
-            const tapLike =
-              Math.abs(dx) <= TAP_MAX_MOVE && Math.abs(e.translationY) <= TAP_MAX_MOVE && Math.abs(vx) < 220;
-            if (tapLike) {
-              runOnJS(fireOpenProfile)();
-            }
-            tx.value = withSpring(0);
-            ty.value = withSpring(0);
+            tx.value = rm ? withTiming(0, { duration: dur }) : withSpring(0);
+            ty.value = rm ? withTiming(0, { duration: dur }) : withSpring(0);
           }
         }),
-    [fireOpenProfile, fireSwipeLeft, fireSwipeRight, tx, ty],
+    [fireSwipeLeft, fireSwipeRight, tx, ty, reduceMotion, motionMs],
   );
 
   const style = useAnimatedStyle(() => ({
@@ -239,11 +224,7 @@ export function SwipeDeck({ card, onSwipeLeft, onSwipeRight, onHeart, onOpenProf
   }));
 
   if (!card) {
-    return (
-      <View style={styles.empty}>
-        <Text style={styles.emptyText}>No more profiles nearby. Widen search radius or check back later.</Text>
-      </View>
-    );
+    return null;
   }
 
   const isFamily = card.role === 'family';
@@ -271,19 +252,19 @@ export function SwipeDeck({ card, onSwipeLeft, onSwipeRight, onHeart, onOpenProf
             pointerEvents="none"
             style={[
               styles.swipeHint,
-              { right: spacing.md, borderColor: c.primary, backgroundColor: 'rgba(45,106,80,0.12)' },
+              { right: spacing.md, borderColor: c.primary, backgroundColor: c.swipeHintLikeFill },
               likeOverlayStyle,
             ]}>
-            <Text style={{ color: c.primaryDark, fontWeight: '800', fontFamily: f.semibold }}>LIKE</Text>
+            <Text style={{ color: c.primaryDark, fontWeight: '600', fontFamily: f.semibold }}>LIKE</Text>
           </Animated.View>
           <Animated.View
             pointerEvents="none"
             style={[
               styles.swipeHint,
-              { left: spacing.md, borderColor: c.textSubtle, backgroundColor: 'rgba(0,0,0,0.06)' },
+              { left: spacing.md, borderColor: c.textSubtle, backgroundColor: c.swipeHintPassFill },
               passOverlayStyle,
             ]}>
-            <Text style={{ color: c.textSecondary, fontWeight: '800', fontFamily: f.semibold }}>PASS</Text>
+            <Text style={{ color: c.textSecondary, fontWeight: '600', fontFamily: f.semibold }}>PASS</Text>
           </Animated.View>
 
           <View style={styles.body}>
@@ -351,23 +332,22 @@ export function SwipeDeck({ card, onSwipeLeft, onSwipeRight, onHeart, onOpenProf
 
             {card.payRangeLabel ? <Text style={styles.meta}>{card.payRangeLabel}</Text> : null}
 
-            {onOpenProfile ? (
-              <Text style={styles.tapHint}>Tap card for full profile · swipe right to like, left to pass</Text>
-            ) : null}
+            <Text style={styles.swipeHelp}>Swipe right to like · left to pass · Heart saves to your list</Text>
+
+            <View style={styles.actions}>
+              <View style={styles.actionBtn}>
+                <Button title="Pass" variant="secondary" size="sm" onPress={onSwipeLeft} />
+              </View>
+              <View style={styles.actionBtn}>
+                <Button title="Heart" variant="secondary" size="sm" onPress={onHeart} />
+              </View>
+              <View style={styles.actionBtn}>
+                <Button title="Like" size="sm" onPress={onSwipeRight} />
+              </View>
+            </View>
           </View>
         </Animated.View>
       </GestureDetector>
-      <View style={styles.actions}>
-        <View style={styles.actionBtn}>
-          <Button title="Pass" variant="secondary" size="sm" onPress={onSwipeLeft} />
-        </View>
-        <View style={styles.actionBtn}>
-          <Button title="Heart" variant="secondary" size="sm" onPress={onHeart} />
-        </View>
-        <View style={styles.actionBtn}>
-          <Button title="Like" size="sm" onPress={onSwipeRight} />
-        </View>
-      </View>
     </View>
   );
 }

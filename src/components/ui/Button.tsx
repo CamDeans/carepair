@@ -4,7 +4,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, ViewStyle } from 'react
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
 import { radius, spacing } from '@/src/theme/tokens';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'accent';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'accent' | 'danger';
 
 type Props = {
   title: string;
@@ -32,7 +32,8 @@ export function Button({
   const isSecondary = variant === 'secondary';
   const isGhost = variant === 'ghost';
   const isAccent = variant === 'accent';
-  const onDark = isPrimary || isAccent;
+  const isDanger = variant === 'danger';
+  const onDark = isPrimary || isAccent || isDanger;
 
   const styles = useMemo(() => {
     const labelBase = {
@@ -78,6 +79,10 @@ export function Button({
         backgroundColor: c.accent,
         borderColor: c.accent,
       },
+      danger: {
+        backgroundColor: c.danger,
+        borderColor: c.danger,
+      },
       disabled: { opacity: 0.7 },
       pressed: { transform: [{ scale: 0.975 }] },
       pressedPrimary: {
@@ -87,6 +92,9 @@ export function Button({
       pressedAccent: {
         backgroundColor: c.accentDark,
         borderColor: c.accentDark,
+      },
+      pressedDanger: {
+        opacity: 0.88,
       },
       label: { ...labelBase, color: c.text },
       labelSm: { fontSize: 13, fontFamily: f.medium },
@@ -111,10 +119,12 @@ export function Button({
         isSecondary && styles.secondary,
         isGhost && styles.ghost,
         isAccent && styles.accent,
+        isDanger && styles.danger,
         (disabled || loading) && styles.disabled,
         pressed && !disabled && !loading && !reduceMotion && styles.pressed,
         pressed && !disabled && !loading && isPrimary && styles.pressedPrimary,
         pressed && !disabled && !loading && isAccent && styles.pressedAccent,
+        pressed && !disabled && !loading && isDanger && styles.pressedDanger,
         style,
       ]}>
       {loading ? (
@@ -129,6 +139,7 @@ export function Button({
             isSecondary && styles.labelSecondary,
             isGhost && styles.labelGhost,
             isAccent && styles.labelOnPrimary,
+            isDanger && styles.labelOnPrimary,
           ]}>
           {title}
         </Text>

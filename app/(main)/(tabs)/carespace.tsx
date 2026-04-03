@@ -6,6 +6,7 @@ import { Calendar } from 'react-native-calendars';
 
 import { Button } from '@/src/components/ui/Button';
 import { Card } from '@/src/components/ui/Card';
+import { EmptyState } from '@/src/components/ui/EmptyState';
 import { Screen } from '@/src/components/ui/Screen';
 import * as api from '@/src/lib/serverApi';
 import type { CareAccessDto, CareNoteRow, MatchPeer, ShiftDto } from '@/src/lib/serverApi';
@@ -253,6 +254,7 @@ export default function CareSpaceScreen() {
       clearDate: { ...t.caption, color: c.primaryDark, fontWeight: '600', fontFamily: f.semibold, marginTop: spacing.sm },
       familyActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.xs, paddingLeft: spacing.md, paddingBottom: spacing.sm },
       actionLink: { ...t.caption, color: c.primaryDark, fontWeight: '600', fontFamily: f.semibold, textDecorationLine: 'underline' },
+      actionLinkDanger: { ...t.caption, color: c.danger, fontWeight: '600', fontFamily: f.semibold, textDecorationLine: 'underline' },
       dayEmpty: { ...t.bodySecondary, marginTop: spacing.sm },
     });
   }, [c, f]);
@@ -332,7 +334,7 @@ export default function CareSpaceScreen() {
             <Text style={styles.actionLink}>Re-open</Text>
           </Pressable>
           <Pressable onPress={() => familyDelete(s)} accessibilityRole="button" accessibilityLabel="Delete shift">
-            <Text style={styles.actionLink}>Delete</Text>
+            <Text style={styles.actionLinkDanger}>Delete</Text>
           </Pressable>
         </View>
       ) : null}
@@ -351,12 +353,18 @@ export default function CareSpaceScreen() {
     return (
       <Screen scroll>
         <Text style={styles.h1}>CareSpace</Text>
-        <Text style={styles.sub}>
-          Unlock shared scheduling, shift confirmations, and care notes with a 7-day trial or subscription.
-        </Text>
-        <View style={{ gap: spacing.md }}>
-          <Button title="Start 7-day trial" onPress={() => void startTrial()} />
-          <Button title="Subscribe (Stripe)" variant="secondary" onPress={() => router.push('/subscription')} />
+        <EmptyState
+          title="Scheduling and notes are locked"
+          description="Start a free 7-day trial to share your calendar, confirm shifts, and keep care notes with matches. Or subscribe anytime from billing."
+          primaryAction={{ title: 'Start 7-day trial', onPress: () => void startTrial() }}
+          secondaryAction={{
+            title: 'Subscribe with Stripe',
+            onPress: () => router.push('/subscription'),
+            variant: 'secondary',
+          }}
+        />
+        <View style={{ marginTop: spacing.sm }}>
+          <Button title="How CareSpace works" variant="ghost" onPress={() => router.push('/help')} />
         </View>
       </Screen>
     );

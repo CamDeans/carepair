@@ -49,6 +49,15 @@ export type MeUser = {
   isAdmin?: boolean;
   canOpenStaffPortal?: boolean;
   valuedTesterAccessUntil?: string | null;
+  termsAcceptedAt?: string | null;
+  termsVersion?: string;
+  emailVerifiedAt?: string | null;
+};
+
+export type AuthTokensResponse = {
+  token: string;
+  refreshToken: string;
+  user: MeUser;
 };
 
 export type PortalMeResponse = {
@@ -65,10 +74,21 @@ export type TeamPortalAccessResponse = {
   updatedByEmail?: string | null;
 };
 
-export async function authRegister(email: string, password: string, role: UserRole | StaffRegisterRole) {
-  return request<{ token: string; user: MeUser }>('/auth/register', {
+export async function authRegister(
+  email: string,
+  password: string,
+  role: UserRole | StaffRegisterRole,
+  opts?: { termsAccepted?: boolean; termsVersion?: string },
+) {
+  return request<AuthTokensResponse>('/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ email, password, role }),
+    body: JSON.stringify({
+      email,
+      password,
+      role,
+      ...(opts?.termsAccepted === true ? { termsAccepted: true } : {}),
+      ...(opts?.termsVersion ? { termsVersion: opts.termsVersion } : {}),
+    }),
   });
 }
 
@@ -108,8 +128,15 @@ export async function portalActivityLog(limit = 40) {
   return request<{ entries: PortalActivityLogEntry[] }>(`/portal/activity-log?limit=${limit}`);
 }
 
+export type PortalSystemHealthResponse = {
+  ok: boolean;
+  database: string;
+  nodeEnv: string;
+  serverTime: string;
+};
+
 export async function portalSystemHealth() {
-  return request<{ ok: boolean; database: string; nodeEnv: string; serverTime: string }>('/portal/system-health');
+  return request<PortalSystemHealthResponse>('/portal/system-health');
 }
 
 export type PortalTesterRow = {
@@ -157,14 +184,16 @@ export async function portalTesterRevoke(userId: string) {
   });
 }
 
+export type PortalRevenueSummary = {
+  stripeConfigured: boolean;
+  headline: string;
+  lines?: string[];
+  available?: string;
+  pending?: string;
+};
+
 export async function portalRevenueSummary() {
-  return request<{
-    stripeConfigured: boolean;
-    headline: string;
-    lines?: string[];
-    available?: string;
-    pending?: string;
-  }>('/portal/revenue-summary');
+  return request<PortalRevenueSummary>('/portal/revenue-summary');
 }
 
 export async function portalPayoutsSummary() {
@@ -195,6 +224,21 @@ export async function portalAnnouncements() {
   return request<{ announcements: PortalAnnouncementRow[] }>('/portal/announcements');
 }
 
+/** Admin-only: creates internal staff announcement. */
+export async function portalAnnouncementCreate(title: string, body: string) {
+  return request<{ id: string; title: string; body: string; createdAt: string }>('/portal/announcements', {
+    method: 'POST',
+    body: JSON.stringify({ title, body }),
+  });
+}
+
+/** Admin-only: removes an announcement. */
+export async function portalAnnouncementDelete(announcementId: string) {
+  return request<{ ok: boolean }>(`/portal/announcements/${encodeURIComponent(announcementId)}`, {
+    method: 'DELETE',
+  });
+}
+
 export async function portalUserSupportSearch(q: string) {
   const enc = encodeURIComponent(q);
   return request<{
@@ -209,14 +253,45 @@ export async function portalUserSupportSearch(q: string) {
 }
 
 export async function authLogin(email: string, password: string) {
-  return request<{ token: string; user: MeUser }>('/auth/login', {
+  return request<AuthTokensResponse>('/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
   });
 }
 
+export async function authRefresh(refreshToken: string) {
+  const base = requireApiBase();
+  return httpJson<AuthTokensResponse>(`${base}/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  });
+}
+
+export async function authForgotPassword(email: string) {
+  const base = requireApiBase();
+  return httpJson<{ ok: boolean }>(`${base}/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function authResetPassword(token: string, password: string) {
+  const base = requireApiBase();
+  return httpJson<{ ok: boolean }>(`${base}/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, password }),
+  });
+}
+
+export async function authLogout() {
+  return request<void>('/auth/logout', { method: 'POST' });
+}
+
 export async function authGoogle(idToken: string, role?: UserRole) {
-  return request<{ token: string; user: MeUser }>('/auth/google', {
+  return request<AuthTokensResponse>('/auth/google', {
     method: 'POST',
     body: JSON.stringify({ idToken, role }),
   });
@@ -270,6 +345,17 @@ export async function profileNotificationPrefsPatch(patch: Partial<NotificationP
 
 export async function profilePublish() {
   return request<{ profilePublished: boolean }>('/profile/publish', { method: 'POST' });
+}
+
+export async function profileDataExport() {
+  return request<{ exportedAt: string; user: unknown; messages: unknown[] }>('/profile/data-export');
+}
+
+export async function profileAccountDelete(body: { password?: string; confirmPhrase?: 'DELETE' }) {
+  return request<{ ok: boolean }>('/profile/account/delete', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
 }
 
 export async function profileSavedList() {

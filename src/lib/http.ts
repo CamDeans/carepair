@@ -42,7 +42,7 @@ export async function httpJson<T>(url: string, options: HttpJsonOptions = {}): P
       throw new ApiError(msg, res.status);
     }
 
-    return data as T;
+    return (data ?? (undefined as T)) as T;
   } catch (e) {
     if (e instanceof ApiError) throw e;
     if (e instanceof Error && e.name === 'AbortError') {

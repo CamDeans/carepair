@@ -2,6 +2,7 @@ import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
+import { EmptyState } from '@/src/components/ui/EmptyState';
 import { Screen } from '@/src/components/ui/Screen';
 import * as api from '@/src/lib/serverApi';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
@@ -13,6 +14,7 @@ export default function StaffPortalHomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState<api.PortalMeResponse | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const styles = useMemo(() => {
     const t = createTypographyStyles(c, f);
@@ -46,9 +48,15 @@ export default function StaffPortalHomeScreen() {
       if (!opts?.silent) setLoading(true);
       try {
         const pm = await api.portalMe();
-        if (!cancelled) setData(pm);
+        if (!cancelled) {
+          setData(pm);
+          setLoadFailed(false);
+        }
       } catch {
-        if (!cancelled) setData(null);
+        if (!cancelled) {
+          setData(null);
+          setLoadFailed(true);
+        }
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -76,6 +84,18 @@ export default function StaffPortalHomeScreen() {
     );
   }
 
+  if (loadFailed) {
+    return (
+      <Screen scroll>
+        <EmptyState
+          title="Could not load staff portal"
+          description="Check your connection and that the server has the portal enabled, then try again."
+          primaryAction={{ title: 'Retry', onPress: () => load() }}
+        />
+      </Screen>
+    );
+  }
+
   if (!data?.canOpenStaffPortal || !data.sections || !data.sectionLabels) {
     return (
       <Screen scroll>
@@ -97,19 +117,33 @@ export default function StaffPortalHomeScreen() {
         Signed in as {data.staffRole}. Open a section below. Team members only see what the admin enables.
       </Text>
       {data.canManageTeamAccess ? (
-        <Pressable style={styles.adminRow} onPress={() => router.push('/staff-portal/team-access' as Href)}>
+        <Pressable
+          style={styles.adminRow}
+          accessibilityRole="button"
+          accessibilityLabel="Manage team member access"
+          onPress={() => router.push('/staff-portal/team-access' as Href)}>
           <Text style={styles.adminText}>Manage team member access ›</Text>
         </Pressable>
       ) : null}
-      {entries.map((id) => (
+      {entries.map((sid) => (
         <Pressable
-          key={id}
+          key={sid}
           style={styles.row}
-          onPress={() => router.push(`/staff-portal/section/${id}` as Href)}>
-          <Text style={styles.rowText}>{data.sectionLabels![id] ?? id}</Text>
+          accessibilityRole="button"
+          accessibilityLabel={data.sectionLabels![sid] ?? sid}
+          onPress={() => router.push(`/staff-portal/section/${sid}` as Href)}>
+          <Text style={styles.rowText}>{data.sectionLabels![sid] ?? sid}</Text>
           <Text style={styles.chev}>›</Text>
         </Pressable>
       ))}
+
+      <View style={[styles.adminRow, { marginTop: spacing.lg, backgroundColor: c.surface, borderWidth: 1, borderColor: c.border }]}>
+        <Text style={[styles.adminText, { color: c.text, fontWeight: '400', fontFamily: f.regular }]}>
+          Usage: Dashboard and reports are read-only snapshots. Valued testers and User lookup are for account operations. Announcements are
+          internal-only; only the admin account can post or delete. Team visibility is controlled under Manage team member access. Pull down on
+          any section to refresh. If PORTAL_ENABLED=0 on the server, routes return errors — keep it on in production when staff use the app.
+        </Text>
+      </View>
     </Screen>
   );
 }

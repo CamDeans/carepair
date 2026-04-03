@@ -161,6 +161,7 @@ export default function SettingsScreen() {
           <Row title="Staff portal" onPress={() => router.push('/staff-portal' as Href)} />
         ) : null}
         <Row title="Edit profile" onPress={() => router.push('/profile-edit')} />
+        <Row title="Data & privacy" onPress={() => router.push('/data-privacy' as Href)} />
         <Row title="Subscription" onPress={() => router.push('/subscription')} />
         {calendarLinked ? (
           <Row

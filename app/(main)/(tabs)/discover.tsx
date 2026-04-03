@@ -1,11 +1,12 @@
 import * as Location from 'expo-location';
-import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { SwipeDeck } from '@/src/components/SwipeDeck';
 import { Button } from '@/src/components/ui/Button';
+import { EmptyState } from '@/src/components/ui/EmptyState';
 import { Screen } from '@/src/components/ui/Screen';
+import { hapticImpactLight, hapticImpactMedium } from '@/src/lib/haptics';
 import { isGoogleMapsAndroidConfigured } from '@/src/lib/config';
 import { getReactNativeMaps } from '@/src/lib/nativeMaps';
 import type { DiscoverCardDto } from '@/src/lib/serverApi';
@@ -108,6 +109,7 @@ export default function DiscoverScreen() {
     if (!current) return;
     try {
       const { matched } = await api.swipeUser(current.id, liked);
+      void hapticImpactMedium();
       if (matched) {
         Alert.alert("It's a match!", 'You can now message each other from the Messages tab.');
       }
@@ -122,6 +124,7 @@ export default function DiscoverScreen() {
     try {
       await api.profileSavedToggle(current.id);
       await refreshMe();
+      void hapticImpactLight();
       Alert.alert('Saved', 'Added to your Saved list.');
     } catch (e) {
       Alert.alert('Save', e instanceof Error ? e.message : 'Failed');
@@ -131,7 +134,10 @@ export default function DiscoverScreen() {
   return (
     <Screen scroll directionalLockIOS>
       <Text style={styles.h1}>Discover</Text>
-      <Text style={styles.sub}>Swipe right to connect, left to pass. Heart saves without matching.</Text>
+      <Text style={styles.sub}>
+        Swipe right to connect, left to pass. Heart saves without matching. Discovery uses your current GPS position — if location is
+        unavailable, open this tab again after granting permission or moving to a clearer signal.
+      </Text>
 
       <View style={styles.mapWrap}>
         {coords && MapView && Circle && Marker ? (
@@ -185,16 +191,19 @@ export default function DiscoverScreen() {
             onSwipeLeft={() => void onSwipe(false)}
             onSwipeRight={() => void onSwipe(true)}
             onHeart={() => void onHeart()}
-            onOpenProfile={() =>
-              router.push(user?.role === 'family' ? `/caregiver/${current.id}` : `/family/${current.id}`)
-            }
+          />
+        ) : loading ? (
+          <ActivityIndicator color={c.primary} style={{ marginVertical: spacing.lg }} />
+        ) : coords ? (
+          <EmptyState
+            title="No more profiles nearby"
+            description="Widen your search radius, tap Refresh, or check back later."
+            primaryAction={{ title: 'Refresh', onPress: () => void load() }}
           />
         ) : (
-          <SwipeDeck
-            card={null}
-            onSwipeLeft={() => {}}
-            onSwipeRight={() => {}}
-            onHeart={() => {}}
+          <EmptyState
+            title="Waiting for location"
+            description="Grant location access to load people near you, then pull to refresh this tab."
           />
         )}
       </View>

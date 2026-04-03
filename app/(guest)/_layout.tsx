@@ -27,6 +27,7 @@ export default function GuestLayout() {
       <Stack.Screen name="login" options={{ title: 'Log in' }} />
       <Stack.Screen name="signup" options={{ title: 'Sign up' }} />
       <Stack.Screen name="forgot-password" options={{ title: 'Forgot password' }} />
+      <Stack.Screen name="reset-password" options={{ title: 'New password' }} />
       <Stack.Screen name="staff-signup" options={{ title: 'Staff signup' }} />
       <Stack.Screen name="family-setup" options={{ title: 'Family profile', headerBackVisible: false }} />
       <Stack.Screen name="caregiver-setup" options={{ title: 'Caregiver profile', headerBackVisible: false }} />

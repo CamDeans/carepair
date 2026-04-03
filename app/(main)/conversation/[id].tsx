@@ -1,4 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
+import { format, isValid, parseISO } from 'date-fns';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
 
@@ -8,6 +9,7 @@ import { TextField } from '@/src/components/ui/TextField';
 import type { ChatMessageDto, ConversationPeerDto } from '@/src/lib/serverApi';
 import * as api from '@/src/lib/serverApi';
 import { pickProfilePhotoUri } from '@/src/lib/profilePhoto';
+import { hapticImpactLight } from '@/src/lib/haptics';
 import { getChatSocket } from '@/src/lib/socket';
 import { useAuthStore } from '@/src/store/authStore';
 import { useInboxUnreadStore } from '@/src/store/inboxUnreadStore';
@@ -59,12 +61,27 @@ export default function ConversationScreen() {
         maxWidth: '78%',
         paddingVertical: spacing.sm + 2,
         paddingHorizontal: spacing.md,
-        borderRadius: radius.lg,
       },
-      them: { backgroundColor: c.surface, borderWidth: 1, borderColor: c.border },
-      me: { backgroundColor: c.primary },
+      them: {
+        backgroundColor: c.surface,
+        borderWidth: 1,
+        borderColor: c.border,
+        borderTopLeftRadius: radius.sm,
+        borderTopRightRadius: radius.lg,
+        borderBottomLeftRadius: radius.lg,
+        borderBottomRightRadius: radius.lg,
+      },
+      me: {
+        backgroundColor: c.primary,
+        borderTopLeftRadius: radius.lg,
+        borderTopRightRadius: radius.sm,
+        borderBottomLeftRadius: radius.lg,
+        borderBottomRightRadius: radius.lg,
+      },
       bubbleText: { ...t.body },
       meText: { color: c.onPrimary, fontFamily: f.regular },
+      time: { ...t.caption, fontSize: 11, marginTop: 4, color: c.textSecondary },
+      timeMe: { ...t.caption, fontSize: 11, marginTop: 4, color: c.onPrimary, opacity: 0.85 },
       composer: {
         paddingHorizontal: layout.screenPaddingX,
         paddingVertical: layout.screenPaddingY,
@@ -145,6 +162,7 @@ export default function ConversationScreen() {
     try {
       const { message } = await api.messageSend(id, body);
       appendUnique(message);
+      void hapticImpactLight();
       void useInboxUnreadStore.getState().refreshFromServer();
     } catch {
       setDraft(body);
@@ -177,6 +195,8 @@ export default function ConversationScreen() {
         renderItem={({ item }) => {
           const fromMe = myId != null && String(item.senderId) === String(myId);
           const uri = photoFor(item, fromMe);
+          const sent = parseISO(item.createdAt);
+          const timeLabel = isValid(sent) ? format(sent, 'h:mm a') : '';
           return (
             <View style={[styles.row, fromMe ? styles.rowMe : styles.rowThem]}>
               {fromMe ? (
@@ -184,6 +204,11 @@ export default function ConversationScreen() {
                   <View style={styles.rowFill} />
                   <View style={[styles.bubble, styles.me]}>
                     <Text style={[styles.bubbleText, styles.meText]}>{item.body}</Text>
+                    {timeLabel ? (
+                      <Text style={styles.timeMe} accessibilityLabel={`Sent ${timeLabel}`}>
+                        {timeLabel}
+                      </Text>
+                    ) : null}
                   </View>
                   <ProfilePhoto
                     uri={uri}
@@ -210,6 +235,11 @@ export default function ConversationScreen() {
                   />
                   <View style={[styles.bubble, styles.them]}>
                     <Text style={styles.bubbleText}>{item.body}</Text>
+                    {timeLabel ? (
+                      <Text style={styles.time} accessibilityLabel={`Sent ${timeLabel}`}>
+                        {timeLabel}
+                      </Text>
+                    ) : null}
                   </View>
                   <View style={styles.rowFill} />
                 </>

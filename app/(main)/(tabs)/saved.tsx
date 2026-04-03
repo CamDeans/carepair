@@ -3,6 +3,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text } from 'react-native';
 
 import { DiscoverCard } from '@/src/components/DiscoverCard';
+import { EmptyState } from '@/src/components/ui/EmptyState';
+import { InlineError } from '@/src/components/ui/InlineError';
 import { Screen } from '@/src/components/ui/Screen';
 import * as api from '@/src/lib/serverApi';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
@@ -20,8 +22,6 @@ export default function SavedScreen() {
     return StyleSheet.create({
       h1: { ...t.screenTitle, marginBottom: spacing.xs },
       sub: { ...t.sub, marginBottom: layout.sectionGap - spacing.sm, marginTop: spacing.xs },
-      empty: { ...t.bodySecondary },
-      err: { ...t.caption, color: c.danger, marginBottom: spacing.sm },
     });
   }, [c, f]);
 
@@ -63,10 +63,14 @@ export default function SavedScreen() {
       <Text style={styles.h1}>Saved</Text>
       <Text style={styles.sub}>Profiles you bookmarked from Discover.</Text>
       {loading ? <ActivityIndicator color={c.primary} /> : null}
-      {err ? <Text style={styles.err}>{err}</Text> : null}
-      {!loading && cards.length === 0 ? (
-        <Text style={styles.empty}>No saved profiles yet. Use the heart on a profile or swipe deck.</Text>
-      ) : (
+      {err ? <InlineError message={err} onRetry={load} /> : null}
+      {!loading && !err && cards.length === 0 ? (
+        <EmptyState
+          title="No saved profiles"
+          description="Use the heart on Discover cards or a profile to save people you want to revisit."
+        />
+      ) : null}
+      {!loading && cards.length > 0 ? (
         cards.map((item) => (
           <DiscoverCard
             key={item.id}
@@ -76,7 +80,7 @@ export default function SavedScreen() {
             onPress={() => router.push(item.href)}
           />
         ))
-      )}
+      ) : null}
     </Screen>
   );
 }

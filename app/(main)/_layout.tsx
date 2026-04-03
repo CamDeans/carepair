@@ -55,6 +55,7 @@ export default function MainLayout() {
       <Stack.Screen name="shift/[id]" options={{ title: 'Shift' }} />
       <Stack.Screen name="care-notes" options={{ title: 'Care notes' }} />
       <Stack.Screen name="profile-edit" options={{ title: 'Edit profile' }} />
+      <Stack.Screen name="data-privacy" options={{ title: 'Data & privacy' }} />
       <Stack.Screen name="subscription" options={{ title: 'Subscription' }} />
       <Stack.Screen name="notifications-settings" options={{ title: 'Notifications' }} />
       <Stack.Screen name="help" options={{ title: 'Help & support' }} />

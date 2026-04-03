@@ -85,6 +85,9 @@ export default function OnboardingScreen() {
         data={SLIDES}
         horizontal
         pagingEnabled
+        snapToInterval={width}
+        snapToAlignment="start"
+        decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
         keyExtractor={(_, i) => String(i)}
         onMomentumScrollEnd={(e) => {

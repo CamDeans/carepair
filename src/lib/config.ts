@@ -46,3 +46,18 @@ export function getGoogleAndroidClientId(): string {
 export function isGoogleMapsAndroidConfigured(): boolean {
   return getExtra().googleMapsAndroidConfigured === true;
 }
+
+/** Public Terms of Service URL (WebView or browser). */
+export function getTermsUrl(): string {
+  return process.env.EXPO_PUBLIC_TERMS_URL?.trim() ?? '';
+}
+
+/** Public Privacy Policy URL. */
+export function getPrivacyUrl(): string {
+  return process.env.EXPO_PUBLIC_PRIVACY_URL?.trim() ?? '';
+}
+
+/** Sent with registration for audit trail (e.g. `2026-04-03` or policy URL). */
+export function getTermsVersionLabel(): string {
+  return process.env.EXPO_PUBLIC_TERMS_VERSION?.trim() ?? '2026-04-03';
+}

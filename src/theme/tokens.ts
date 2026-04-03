@@ -30,6 +30,13 @@ export const colors = {
   mapSearchRadiusFill: 'rgba(45, 106, 80, 0.14)',
   /** Card / sheet shadow base (RN uses separate shadowOpacity) */
   shadowInk: '#2C2C2A',
+  /** Hero photo gradient / scrim (Discover swipe card) */
+  overlayScrim: 'rgba(0, 0, 0, 0.5)',
+  onImageText: '#FFFFFF',
+  onImageTextMuted: 'rgba(255, 255, 255, 0.92)',
+  textShadowOnImage: 'rgba(0, 0, 0, 0.35)',
+  swipeHintLikeFill: 'rgba(45, 106, 80, 0.12)',
+  swipeHintPassFill: 'rgba(44, 44, 42, 0.06)',
 } as const;
 
 export type CarePairPalette = { [K in keyof typeof colors]: string };
@@ -60,6 +67,12 @@ export const darkColors: CarePairPalette = {
   onPrimary: '#FFFFFF',
   mapSearchRadiusFill: 'rgba(74, 155, 116, 0.22)',
   shadowInk: '#000000',
+  overlayScrim: 'rgba(0, 0, 0, 0.55)',
+  onImageText: '#FFFFFF',
+  onImageTextMuted: 'rgba(255, 255, 255, 0.92)',
+  textShadowOnImage: 'rgba(0, 0, 0, 0.45)',
+  swipeHintLikeFill: 'rgba(74, 155, 116, 0.2)',
+  swipeHintPassFill: 'rgba(241, 239, 232, 0.08)',
 };
 
 /** Aligns with landing `--cp-ease` / durations. */

@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, Text, View, type TextStyle } from 'react-native';
 
 import { ProfilePhotoGallery } from '@/src/components/ProfilePhotoGallery';
 import { Button } from '@/src/components/ui/Button';
@@ -32,31 +32,10 @@ type FmProfile = {
   primaryPhotoIndex?: number;
 };
 
-function Section({
-  title,
-  children,
-  colors,
-  fonts,
-}: {
-  title: string;
-  children: ReactNode;
-  colors: { text: string };
-  fonts: { semibold: string | undefined };
-}) {
+function Section({ title, labelStyle, children }: { title: string; labelStyle: TextStyle; children: ReactNode }) {
   return (
     <View style={{ marginBottom: layout.sectionGap }}>
-      <Text
-        style={{
-          fontSize: 13,
-          fontWeight: '700',
-          color: colors.text,
-          marginBottom: spacing.sm,
-          letterSpacing: 0.4,
-          textTransform: 'uppercase',
-          fontFamily: fonts.semibold,
-        }}>
-        {title}
-      </Text>
+      <Text style={labelStyle}>{title}</Text>
       {children}
     </View>
   );
@@ -74,6 +53,7 @@ export default function FamilyDetailScreen() {
   const styles = useMemo(() => {
     const t = createTypographyStyles(c, f);
     return StyleSheet.create({
+      sectionLabel: t.profileSectionLabel,
       miss: { ...t.bodySecondary },
       heroRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md, alignItems: 'flex-start' },
       leadPhoto: { width: 88, height: 88, borderRadius: radius.lg },
@@ -185,43 +165,43 @@ export default function FamilyDetailScreen() {
       </View>
 
       {fm.scheduleNeeds ? (
-        <Section title="Schedule & care needs" colors={c} fonts={f}>
+        <Section title="Schedule & care needs" labelStyle={styles.sectionLabel}>
           <Text style={styles.body}>{fm.scheduleNeeds}</Text>
         </Section>
       ) : null}
 
       {fm.childrenNotes ? (
-        <Section title="About the children" colors={c} fonts={f}>
+        <Section title="About the children" labelStyle={styles.sectionLabel}>
           <Text style={styles.body}>{fm.childrenNotes}</Text>
         </Section>
       ) : null}
 
       {fm.pets || fm.petDetails ? (
-        <Section title="Pets" colors={c} fonts={f}>
+        <Section title="Pets" labelStyle={styles.sectionLabel}>
           <Text style={styles.body}>{[fm.pets, fm.petDetails].filter(Boolean).join('\n\n')}</Text>
         </Section>
       ) : null}
 
       {fm.carePreferences ? (
-        <Section title="Care preferences" colors={c} fonts={f}>
+        <Section title="Care preferences" labelStyle={styles.sectionLabel}>
           <Text style={styles.body}>{fm.carePreferences}</Text>
         </Section>
       ) : null}
 
       {fm.specialNeedsSummary ? (
-        <Section title="Special considerations" colors={c} fonts={f}>
+        <Section title="Special considerations" labelStyle={styles.sectionLabel}>
           <Text style={styles.body}>{fm.specialNeedsSummary}</Text>
         </Section>
       ) : null}
 
       {fm.householdRoutines ? (
-        <Section title="Household routines" colors={c} fonts={f}>
+        <Section title="Household routines" labelStyle={styles.sectionLabel}>
           <Text style={styles.bodySecondary}>{fm.householdRoutines}</Text>
         </Section>
       ) : null}
 
       {fm.languagesPreferred ? (
-        <Section title="Languages" colors={c} fonts={f}>
+        <Section title="Languages" labelStyle={styles.sectionLabel}>
           <Text style={styles.body}>{fm.languagesPreferred}</Text>
         </Section>
       ) : null}

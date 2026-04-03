@@ -11,6 +11,7 @@ import { TextField } from '@/src/components/ui/TextField';
 import * as api from '@/src/lib/serverApi';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
+import { createTypographyStyles } from '@/src/theme/typography';
 import { radius, spacing } from '@/src/theme/tokens';
 
 const STEPS = ['Basics', 'Experience & pay', 'Safety & references', 'Photos & documents', 'Location', 'Review'] as const;
@@ -52,9 +53,9 @@ export default function CaregiverSetupScreen() {
     languages: '',
   });
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
+  const styles = useMemo(() => {
+    const t = createTypographyStyles(c, f);
+    return StyleSheet.create({
         step: {
           fontSize: 14,
           fontWeight: '600',
@@ -62,7 +63,7 @@ export default function CaregiverSetupScreen() {
           marginBottom: spacing.md,
           fontFamily: f.semibold,
         },
-        h: { fontWeight: '700', marginBottom: spacing.sm, color: c.text, fontFamily: f.semibold },
+        h: { ...t.sectionTitle, fontSize: 22, lineHeight: 28, marginBottom: spacing.sm },
         p: { color: c.textSecondary, marginBottom: spacing.md, fontFamily: f.regular },
         r: { color: c.text, marginBottom: spacing.xs, fontFamily: f.regular },
         row: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
@@ -72,9 +73,8 @@ export default function CaregiverSetupScreen() {
         reqOk: { color: c.success, fontWeight: '600', fontFamily: f.semibold, marginTop: spacing.sm },
         reqBad: { color: c.danger, fontWeight: '600', fontFamily: f.semibold, marginTop: spacing.sm },
         docLine: { color: c.textSecondary, fontSize: 14, marginTop: spacing.xs, fontFamily: f.regular },
-      }),
-    [c, f],
-  );
+      });
+  }, [c, f]);
 
   const pickAndUpload = async (kind: 'photo' | 'doc') => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();

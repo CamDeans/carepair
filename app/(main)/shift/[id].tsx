@@ -224,7 +224,7 @@ export default function ShiftDetailScreen() {
             <Button title="Re-open" onPress={() => void reopenShift()} style={styles.flex} />
             <Button
               title="Delete"
-              variant="secondary"
+              variant="danger"
               onPress={() =>
                 Alert.alert(
                   'Delete this shift?',
