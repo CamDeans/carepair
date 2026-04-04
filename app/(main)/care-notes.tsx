@@ -74,7 +74,7 @@ export default function CareNotesScreen() {
       tmplText: { ...t.caption, fontSize: 13 },
       dateHeader: {
         ...t.label,
-        color: c.primaryDark,
+        color: c.text,
         marginTop: spacing.lg,
         marginBottom: spacing.sm,
       },
@@ -86,7 +86,7 @@ export default function CareNotesScreen() {
         borderColor: c.border,
         marginBottom: spacing.sm,
       },
-      meta: { ...t.caption, fontSize: 12, fontWeight: '600', color: c.primaryDark, marginBottom: spacing.xs, fontFamily: f.semibold },
+      meta: { ...t.caption, fontSize: 12, fontWeight: '600', color: c.text, marginBottom: spacing.xs, fontFamily: f.semibold },
       noteBody: { ...t.sub, color: c.text, lineHeight: 22 },
       count: { ...t.caption, textAlign: 'right', marginTop: spacing.xs },
     });
@@ -185,7 +185,9 @@ export default function CareNotesScreen() {
           accessibilityLabel={`Notes with ${m.displayName}${m.city ? `, ${m.city}` : ''}`}
           accessibilityState={{ selected: peerUserId === m.id }}
           onPress={() => setPeerUserId(m.id)}>
-          <Text style={styles.pickText} importantForAccessibility="no">
+          <Text
+            style={[styles.pickText, peerUserId === m.id && { color: c.brandYellowText }]}
+            importantForAccessibility="no">
             {m.displayName}
             {m.city ? ` · ${m.city}` : ''}
           </Text>

@@ -59,7 +59,7 @@ export default function CaregiverSetupScreen() {
         step: {
           fontSize: 14,
           fontWeight: '600',
-          color: c.primaryDark,
+          color: c.text,
           marginBottom: spacing.md,
           fontFamily: f.semibold,
         },

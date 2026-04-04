@@ -26,7 +26,7 @@ export default function SubscriptionScreen() {
     const t = createTypographyStyles(c, f);
     return StyleSheet.create({
       h1: { ...t.sectionTitle, fontSize: 24, lineHeight: 28 },
-      price: { ...t.sectionTitle, fontSize: 20, lineHeight: 26, color: c.primaryDark, marginTop: spacing.sm },
+      price: { ...t.sectionTitle, fontSize: 20, lineHeight: 26, color: c.primary, marginTop: spacing.sm },
       sub: { ...t.sub, marginVertical: spacing.md },
       box: {
         padding: spacing.lg,

@@ -93,7 +93,7 @@ export default function StaffSignupScreen() {
             accessibilityRole="button"
             accessibilityState={{ selected: role === r.id }}
             accessibilityLabel={r.label}>
-            <Text style={styles.chipTitle}>{r.label}</Text>
+            <Text style={[styles.chipTitle, role === r.id && { color: c.brandYellowText }]}>{r.label}</Text>
             <Text style={styles.chipHint}>{r.hint}</Text>
           </Pressable>
         ))}

@@ -38,7 +38,7 @@ function ProposalCard({
       meta: { ...t.caption, marginBottom: spacing.xs },
       when: { ...t.body, fontWeight: '600', fontFamily: f.semibold },
       where: { ...t.body, marginTop: spacing.xs },
-      status: { ...t.caption, marginTop: spacing.sm, color: c.primaryDark },
+      status: { ...t.caption, marginTop: spacing.sm, color: c.primary },
       actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md },
       act: { flexGrow: 1, minWidth: 120 },
     });
@@ -102,7 +102,7 @@ export default function MeetupProposalsScreen() {
     return StyleSheet.create({
       h1: { ...t.sectionTitle, marginBottom: spacing.sm },
       sub: { ...t.sub, marginBottom: layout.sectionGap - spacing.sm },
-      section: { ...t.label, color: c.primaryDark, marginTop: spacing.lg, marginBottom: spacing.sm },
+      section: { ...t.label, color: c.text, marginTop: spacing.lg, marginBottom: spacing.sm },
       empty: { ...t.bodySecondary },
     });
   }, [c, f]);

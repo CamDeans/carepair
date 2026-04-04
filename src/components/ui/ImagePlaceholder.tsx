@@ -21,13 +21,13 @@ export function ImagePlaceholder({ style, accessibilityLabel = 'Photo placeholde
         base: {
           borderWidth: 1.5,
           borderStyle: 'dashed',
-          borderColor: c.textSubtle,
-          backgroundColor: c.surface,
+          borderColor: c.borderStrong,
+          backgroundColor: c.surfaceMuted,
           alignItems: 'center',
           justifyContent: 'center',
         },
       }),
-    [c.textSubtle, c.surface],
+    [c.borderStrong, c.surfaceMuted],
   );
 
   return (

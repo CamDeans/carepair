@@ -70,7 +70,7 @@ export default function FamilyDetailScreen() {
         backgroundColor: c.primaryMuted,
         marginBottom: spacing.sm,
       },
-      chipText: { fontSize: 14, fontWeight: '600', color: c.primaryDark },
+      chipText: { fontSize: 14, fontWeight: '600', color: c.brandYellowText },
     });
   }, [c, f]);
 

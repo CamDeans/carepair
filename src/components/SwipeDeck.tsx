@@ -130,7 +130,7 @@ export function SwipeDeck({ card, onSwipeLeft, onSwipeRight, onHeart }: Props) {
         ...t.caption,
         marginTop: spacing.sm,
         fontWeight: '600',
-        color: c.primaryDark,
+        color: c.text,
         fontFamily: f.semibold,
       },
       actions: {
@@ -229,7 +229,7 @@ export function SwipeDeck({ card, onSwipeLeft, onSwipeRight, onHeart }: Props) {
 
   const isFamily = card.role === 'family';
   const chipBg = c.primaryMuted;
-  const chipFg = c.primaryDark;
+  const chipFg = c.brandYellowText;
 
   return (
     <View style={[styles.wrap, { maxWidth: winW - layout.screenPaddingX * 2 }]}>
@@ -252,10 +252,10 @@ export function SwipeDeck({ card, onSwipeLeft, onSwipeRight, onHeart }: Props) {
             pointerEvents="none"
             style={[
               styles.swipeHint,
-              { right: spacing.md, borderColor: c.primary, backgroundColor: c.swipeHintLikeFill },
+              { right: spacing.md, borderColor: c.success, backgroundColor: c.swipeHintLikeFill },
               likeOverlayStyle,
             ]}>
-            <Text style={{ color: c.primaryDark, fontWeight: '600', fontFamily: f.semibold }}>LIKE</Text>
+            <Text style={{ color: c.successText, fontWeight: '600', fontFamily: f.semibold }}>LIKE</Text>
           </Animated.View>
           <Animated.View
             pointerEvents="none"

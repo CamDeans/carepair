@@ -1,81 +1,109 @@
 /**
- * Visual spec: `brand/CAREPAIR-VISUAL-SPEC.md` — Warm Sage + Terracotta. Mirrors `brand/tokens.json`.
+ * Visual spec: `brand/CAREPAIR-VISUAL-SPEC.md`. Mirrors `brand/tokens.json`.
+ * Coral primary CTA, yellow accents, green success, cool neutrals.
  */
 export const colors = {
-  primary: '#2D6A50',
-  primaryMid: '#4A9B74',
-  primaryLight: '#D8F0E4',
-  /** Alias for chips / avatars (same as primaryLight) */
-  primaryMuted: '#D8F0E4',
-  primaryDark: '#1A3D2E',
-  accent: '#D85A30',
-  accentLight: '#FAECE7',
-  accentDark: '#993C1D',
-  background: '#FBF9F6',
+  screenBackground: '#FFFFFF',
+  surfaceMuted: '#F7F9FC',
   surface: '#FFFFFF',
-  text: '#2C2C2A',
-  textSecondary: '#5F5E5A',
-  textSubtle: '#B4B2A9',
-  border: 'rgba(44, 44, 42, 0.1)',
-  borderStrong: 'rgba(44, 44, 42, 0.2)',
-  danger: '#A32D2D',
-  success: '#1D9E75',
+  border: '#EDF0F5',
+  borderStrong: '#DDE2EB',
+  text: '#1A2733',
+  textSecondary: '#7A8A99',
+  textSubtle: '#B0BCC8',
+  textDisabled: '#B0BCC8',
+  brandYellow: '#FFD84D',
+  brandYellowTint: '#FFF3BA',
+  brandYellowText: '#5A4200',
+  success: '#3EC882',
+  successTint: '#C0F0D8',
+  successText: '#0A3D22',
+  accentCoral: '#FF7052',
+  accentCoralMid: '#FF8A6F',
+  accentCoralTint: '#FFD4CB',
+  accentCoralText: '#7A2010',
+  focusRing: '#FFD84D',
+  pressedBackground: '#F0F3F7',
+  disabledBackground: '#EDF0F5',
+  danger: '#C94A4A',
   warning: '#BA7517',
-  logoNeutral: '#D85A30',
-  darkSurface: '#1C1C1A',
-  darkBackground: '#111210',
-  /** Text on primary / accent button labels */
+  /** Primary CTA / links / spinners (coral) */
+  primary: '#FF7052',
+  primaryMid: '#FF8A6F',
+  primaryLight: '#FFD4CB',
+  /** Selected chips, soft highlights (yellow tint) */
+  primaryMuted: '#FFF3BA',
+  /** Emphasis on light surfaces (same as text) */
+  primaryDark: '#1A2733',
+  accent: '#FF7052',
+  accentLight: '#FFD4CB',
+  accentDark: '#E85A3C',
+  background: '#FFFFFF',
+  logoNeutral: '#FF7052',
+  darkSurface: '#1A2332',
+  darkBackground: '#0F1419',
   onPrimary: '#FFFFFF',
-  /** Discover map search radius fill (sage @ ~14% alpha) */
-  mapSearchRadiusFill: 'rgba(45, 106, 80, 0.14)',
-  /** Card / sheet shadow base (RN uses separate shadowOpacity) */
-  shadowInk: '#2C2C2A',
-  /** Hero photo gradient / scrim (Discover swipe card) */
+  mapSearchRadiusFill: 'rgba(62, 200, 130, 0.18)',
+  shadowInk: '#1A2733',
   overlayScrim: 'rgba(0, 0, 0, 0.5)',
   onImageText: '#FFFFFF',
   onImageTextMuted: 'rgba(255, 255, 255, 0.92)',
   textShadowOnImage: 'rgba(0, 0, 0, 0.35)',
-  swipeHintLikeFill: 'rgba(45, 106, 80, 0.12)',
-  swipeHintPassFill: 'rgba(44, 44, 42, 0.06)',
+  swipeHintLikeFill: 'rgba(62, 200, 130, 0.14)',
+  swipeHintPassFill: 'rgba(122, 138, 153, 0.08)',
 } as const;
 
 export type CarePairPalette = { [K in keyof typeof colors]: string };
 
-/** Dark appearance — same keys as `colors` (spec :root dark). */
+/** Dark appearance — same semantic keys. */
 export const darkColors: CarePairPalette = {
-  primary: '#4A9B74',
-  primaryMid: '#5DCAA5',
-  primaryLight: '#0F3D28',
-  primaryMuted: '#0F3D28',
-  primaryDark: '#D8F0E4',
-  accent: '#F0997B',
-  accentLight: '#3D1A0E',
-  accentDark: '#F0997B',
-  background: '#111210',
-  surface: '#1C1C1A',
-  text: '#F1EFE8',
-  textSecondary: '#B4B2A9',
-  textSubtle: '#5F5E5A',
-  border: 'rgba(241, 239, 232, 0.09)',
-  borderStrong: 'rgba(241, 239, 232, 0.18)',
-  danger: '#E87070',
-  success: '#1D9E75',
-  warning: '#BA7517',
-  logoNeutral: '#F0997B',
-  darkSurface: '#1C1C1A',
-  darkBackground: '#111210',
+  screenBackground: '#0F1419',
+  surfaceMuted: '#151C28',
+  surface: '#1A2332',
+  border: 'rgba(232, 237, 245, 0.12)',
+  borderStrong: 'rgba(232, 237, 245, 0.22)',
+  text: '#E8EDF5',
+  textSecondary: '#9CA8B8',
+  textSubtle: '#6B7788',
+  textDisabled: '#5A6575',
+  brandYellow: '#E8C44A',
+  brandYellowTint: '#3A3420',
+  brandYellowText: '#F5E6A8',
+  success: '#4CD998',
+  successTint: '#1A3D2E',
+  successText: '#B8F0D4',
+  accentCoral: '#FF8A72',
+  accentCoralMid: '#FFA48F',
+  accentCoralTint: '#4A2820',
+  accentCoralText: '#FFD4CB',
+  focusRing: '#E8C44A',
+  pressedBackground: '#242D3D',
+  disabledBackground: '#1F2836',
+  danger: '#F08080',
+  warning: '#D4A054',
+  primary: '#FF8A72',
+  primaryMid: '#FFA48F',
+  primaryLight: '#4A2820',
+  primaryMuted: '#3A3420',
+  primaryDark: '#E8EDF5',
+  accent: '#FF8A72',
+  accentLight: '#4A2820',
+  accentDark: '#FFB09E',
+  background: '#0F1419',
+  logoNeutral: '#FF8A72',
+  darkSurface: '#1A2332',
+  darkBackground: '#0F1419',
   onPrimary: '#FFFFFF',
-  mapSearchRadiusFill: 'rgba(74, 155, 116, 0.22)',
+  mapSearchRadiusFill: 'rgba(76, 217, 152, 0.22)',
   shadowInk: '#000000',
-  overlayScrim: 'rgba(0, 0, 0, 0.55)',
+  overlayScrim: 'rgba(0, 0, 0, 0.6)',
   onImageText: '#FFFFFF',
   onImageTextMuted: 'rgba(255, 255, 255, 0.92)',
   textShadowOnImage: 'rgba(0, 0, 0, 0.45)',
-  swipeHintLikeFill: 'rgba(74, 155, 116, 0.2)',
-  swipeHintPassFill: 'rgba(241, 239, 232, 0.08)',
+  swipeHintLikeFill: 'rgba(76, 217, 152, 0.2)',
+  swipeHintPassFill: 'rgba(232, 237, 245, 0.08)',
 };
 
-/** Aligns with landing `--cp-ease` / durations. */
 export const motion = {
   ease: 'cubic-bezier(0.22, 1, 0.36, 1)' as const,
   fastMs: 140,
@@ -90,20 +118,13 @@ export const spacing = {
   xl: 32,
 } as const;
 
-/**
- * Screen chrome — use with `Screen` and stack content so padding stays consistent app-wide.
- * Horizontal 20px hits a comfortable reading margin on phones (spec base is 16px body; edges slightly wider).
- */
 export const layout = {
   screenPaddingX: 20,
   screenPaddingY: 16,
-  /** Vertical gap between major sections (title block → content → actions). */
   sectionGap: 24,
-  /** Minimum list row height for primary touch targets (WCAG-friendly). */
   listRowMinHeight: 52,
 } as const;
 
-/** Matches spec: sm 6, md 10, lg 16, xl 22, pill */
 export const radius = {
   sm: 6,
   md: 10,

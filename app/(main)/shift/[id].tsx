@@ -34,7 +34,7 @@ export default function ShiftDetailScreen() {
       status: { ...t.body, fontWeight: '600', marginVertical: spacing.md, fontFamily: f.semibold },
       section: {
         ...t.label,
-        color: c.primaryDark,
+        color: c.text,
         marginTop: spacing.md,
         marginBottom: spacing.sm,
       },
@@ -82,7 +82,10 @@ export default function ShiftDetailScreen() {
         router.back();
       }
     } catch (e) {
-      Alert.alert('Shift', e instanceof Error ? e.message : 'Failed');
+      const msg = e instanceof Error ? e.message : 'Failed';
+      const conflict =
+        /overlap/i.test(msg) || /google calendar/i.test(msg) || /another shift/i.test(msg);
+      Alert.alert(conflict ? 'Scheduling conflict' : 'Shift', msg);
     }
   };
 
@@ -162,7 +165,10 @@ export default function ShiftDetailScreen() {
       }
       Alert.alert('Saved', lines.join('\n\n'));
     } catch (e) {
-      Alert.alert('Shift', e instanceof Error ? e.message : 'Failed');
+      const msg = e instanceof Error ? e.message : 'Failed';
+      const conflict =
+        /overlap/i.test(msg) || /google calendar/i.test(msg) || /another shift/i.test(msg);
+      Alert.alert(conflict ? 'Scheduling conflict' : 'Shift', msg);
     } finally {
       setSaving(false);
     }

@@ -161,8 +161,8 @@ export default function CaregiverDetailScreen() {
       </View>
 
       <View style={styles.badgeRow}>
-        {cg.firstAidCpr ? <Badge label="First aid / CPR" bg={c.primaryMuted} fg={c.primaryDark} /> : null}
-        {cg.vulnerableSectorCheck ? <Badge label="Vulnerable sector check" bg={c.primaryMuted} fg={c.primaryDark} /> : null}
+        {cg.firstAidCpr ? <Badge label="First aid / CPR" bg={c.primaryMuted} fg={c.brandYellowText} /> : null}
+        {cg.vulnerableSectorCheck ? <Badge label="Vulnerable sector check" bg={c.primaryMuted} fg={c.brandYellowText} /> : null}
       </View>
 
       {cg.bio ? (

@@ -19,9 +19,9 @@ export function LogoMark({ size = 40, importantForAccessibility = 'yes' }: { siz
       accessible={importantForAccessibility === 'yes'}
       accessibilityRole="image"
       accessibilityLabel={importantForAccessibility === 'yes' ? 'CarePair' : undefined}>
-      <Rect width={64} height={64} rx={14} fill={c.primary} />
-      <Circle cx={26} cy={32} r={13} fill={c.onPrimary} opacity={0.95} />
-      <Circle cx={38} cy={32} r={13} fill={c.accent} opacity={0.88} />
+      <Rect width={64} height={64} rx={14} fill={c.brandYellow} />
+      <Circle cx={26} cy={32} r={13} fill={c.accentCoral} opacity={0.95} />
+      <Circle cx={38} cy={32} r={13} fill={c.text} opacity={0.88} />
     </Svg>
   );
 }

@@ -64,7 +64,7 @@ export default function OnboardingScreen() {
       body: { ...t.bodySecondary, textAlign: 'center', lineHeight: 24 },
       dots: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginVertical: spacing.lg },
       dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: c.border },
-      dotOn: { backgroundColor: c.primary, width: 22 },
+      dotOn: { backgroundColor: c.brandYellow, width: 22 },
       actions: { gap: spacing.md, paddingBottom: spacing.md },
     });
   }, [c, f, width]);

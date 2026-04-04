@@ -157,7 +157,7 @@ export default function ProfileEditScreen() {
         fontSize: 17,
         marginTop: spacing.lg,
         marginBottom: spacing.sm,
-        color: c.primaryDark,
+        color: c.text,
       },
       hint: { ...t.caption, marginBottom: spacing.md },
       primaryRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
@@ -171,7 +171,7 @@ export default function ProfileEditScreen() {
       },
       chipOn: { borderColor: c.primary, backgroundColor: c.primaryMuted },
       chipText: { ...t.caption, fontWeight: '600' },
-      chipTextOn: { color: c.primaryDark },
+      chipTextOn: { color: c.brandYellowText },
       docRow: {
         flexDirection: 'row',
         alignItems: 'center',

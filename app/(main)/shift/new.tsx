@@ -100,7 +100,10 @@ export default function NewShiftScreen() {
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Failed';
       const overlap =
-        /overlap/i.test(msg) || /another shift/i.test(msg) || /different slot/i.test(msg);
+        /overlap/i.test(msg) ||
+        /another shift/i.test(msg) ||
+        /different slot/i.test(msg) ||
+        /google calendar/i.test(msg);
       Alert.alert(overlap ? 'Scheduling conflict' : 'Shift', msg);
     }
   };
@@ -117,7 +120,9 @@ export default function NewShiftScreen() {
           accessibilityLabel={`Caregiver ${m.displayName}`}
           accessibilityState={{ selected: caregiverUserId === m.id }}
           onPress={() => setCaregiverUserId(m.id)}>
-          <Text style={styles.pickText} importantForAccessibility="no">
+          <Text
+            style={[styles.pickText, caregiverUserId === m.id && { color: c.brandYellowText }]}
+            importantForAccessibility="no">
             {m.displayName} · {m.city ?? ''}
           </Text>
         </Pressable>

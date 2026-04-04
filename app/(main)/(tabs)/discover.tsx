@@ -47,7 +47,7 @@ export default function DiscoverScreen() {
       label: { ...t.label, marginBottom: spacing.xs },
       input: {
         borderWidth: 1,
-        borderColor: c.borderStrong,
+        borderColor: c.border,
         borderRadius: radius.md,
         paddingHorizontal: spacing.md,
         paddingVertical: 14,

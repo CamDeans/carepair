@@ -7,7 +7,7 @@ import { useCarePairUi } from '@/src/theme/CarePairUiContext';
 import { spacing } from '@/src/theme/tokens';
 
 /**
- * Thin banner when the device reports no connection (§6 prod readiness — offline UX).
+ * Thin banner when the device reports no connection (offline UX).
  * API calls still use `httpJson` for timeout / “no internet” errors on failure.
  */
 export function NetworkOfflineBanner() {

@@ -1,7 +1,16 @@
 import { router, useFocusEffect } from 'expo-router';
 import { format, isBefore, isValid, parseISO } from 'date-fns';
-import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Calendar } from 'react-native-calendars';
 
 import { Button } from '@/src/components/ui/Button';
@@ -10,7 +19,7 @@ import { EmptyState } from '@/src/components/ui/EmptyState';
 import { Screen } from '@/src/components/ui/Screen';
 import { effectiveConsumerPersona } from '@/src/lib/effectivePersona';
 import * as api from '@/src/lib/serverApi';
-import type { CareAccessDto, CareNoteRow, MatchPeer, ShiftDto } from '@/src/lib/serverApi';
+import type { CareAccessDto, CareNoteRow, GoogleCalendarEventDto, MatchPeer, ShiftDto } from '@/src/lib/serverApi';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
 import { createTypographyStyles } from '@/src/theme/typography';
@@ -51,6 +60,44 @@ function noteForPair(n: CareNoteRow, me: string, peer: string): boolean {
   );
 }
 
+/** Local calendar dates (yyyy-MM-dd) an event touches, for dots and day filtering. */
+function eachLocalDayBetween(startIso: string, endIso: string, allDay: boolean): string[] {
+  const s = new Date(startIso);
+  const e = new Date(endIso);
+  const startDay = new Date(s.getFullYear(), s.getMonth(), s.getDate());
+  const endDay = new Date(e.getFullYear(), e.getMonth(), e.getDate());
+  let endInclusive = new Date(endDay);
+  if (allDay) {
+    endInclusive.setDate(endInclusive.getDate() - 1);
+  }
+  if (endInclusive < startDay) {
+    return [format(startDay, 'yyyy-MM-dd')];
+  }
+  const out: string[] = [];
+  const cur = new Date(startDay);
+  while (cur <= endInclusive) {
+    out.push(format(cur, 'yyyy-MM-dd'));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return out;
+}
+
+function formatGoogleEventWhen(ev: GoogleCalendarEventDto): string {
+  const s = new Date(ev.start);
+  const e = new Date(ev.end);
+  if (ev.allDay) {
+    const days = eachLocalDayBetween(ev.start, ev.end, true);
+    if (days.length === 0) return format(s, 'MMM d, yyyy');
+    if (days.length === 1) return format(parseISO(days[0]!), 'MMM d, yyyy');
+    return `${format(parseISO(days[0]!), 'MMM d')} – ${format(parseISO(days[days.length - 1]!), 'MMM d, yyyy')}`;
+  }
+  return `${format(s, 'MMM d, h:mm a')} – ${format(e, 'h:mm a')}`;
+}
+
+function eventTouchesYmd(ev: GoogleCalendarEventDto, ymd: string): boolean {
+  return eachLocalDayBetween(ev.start, ev.end, ev.allDay).includes(ymd);
+}
+
 export default function CareSpaceScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
   const user = useAuthStore((s) => s.user);
@@ -64,6 +111,48 @@ export default function CareSpaceScreen() {
   const [selectedPeerId, setSelectedPeerId] = useState('');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [visibleMonth, setVisibleMonth] = useState(() => {
+    const n = new Date();
+    return { year: n.getFullYear(), month: n.getMonth() + 1 };
+  });
+  const [googleEvents, setGoogleEvents] = useState<GoogleCalendarEventDto[]>([]);
+  const [googleMeta, setGoogleMeta] = useState<{ connected: boolean; error?: string }>({ connected: false });
+  const [refreshing, setRefreshing] = useState(false);
+
+  const applyCareSpaceResponse = useCallback(
+    (a: CareAccessDto, shiftRows: ShiftDto[], notesRows: CareNoteRow[], mat: MatchPeer[]) => {
+      setAccess(a);
+      setShifts(shiftRows);
+      setNotes(notesRows);
+      setMatches(mat);
+      const peers =
+        persona === 'family'
+          ? mat.filter((x) => x.role === 'caregiver')
+          : persona === 'caregiver'
+            ? mat.filter((x) => x.role === 'family')
+            : [];
+      setSelectedPeerId((cur) => {
+        if (cur && peers.some((p) => p.id === cur)) return cur;
+        if (peers.length >= 1) return peers[0].id;
+        return '';
+      });
+    },
+    [persona],
+  );
+
+  const loadGoogleCalendarForVisibleMonth = useCallback(async () => {
+    const { year, month } = visibleMonth;
+    const start = new Date(year, month - 1, 1, 0, 0, 0, 0);
+    const end = new Date(year, month, 0, 23, 59, 59, 999);
+    try {
+      const r = await api.googleCalendarEvents(start.toISOString(), end.toISOString());
+      setGoogleMeta({ connected: r.connected, error: r.error });
+      setGoogleEvents(r.events);
+    } catch {
+      setGoogleEvents([]);
+      setGoogleMeta({ connected: true, error: 'Could not load Google Calendar events.' });
+    }
+  }, [visibleMonth.year, visibleMonth.month]);
 
   const carePeers = useMemo(() => {
     if (persona === 'family') return matches.filter((m) => m.role === 'caregiver');
@@ -93,21 +182,7 @@ export default function CareSpaceScreen() {
             api.matchesList(),
           ]);
           if (cancelled) return;
-          setAccess(a);
-          setShifts(sh.shifts);
-          setNotes(n.notes);
-          setMatches(m.matches);
-          const peers =
-            persona === 'family'
-              ? m.matches.filter((x) => x.role === 'caregiver')
-              : persona === 'caregiver'
-                ? m.matches.filter((x) => x.role === 'family')
-                : [];
-          setSelectedPeerId((cur) => {
-            if (cur && peers.some((p) => p.id === cur)) return cur;
-            if (peers.length >= 1) return peers[0].id;
-            return '';
-          });
+          applyCareSpaceResponse(a, sh.shifts, n.notes, m.matches);
         } catch {
           if (!cancelled) {
             setAccess(null);
@@ -123,8 +198,53 @@ export default function CareSpaceScreen() {
       return () => {
         cancelled = true;
       };
-    }, [persona]),
+    }, [applyCareSpaceResponse]),
   );
+
+  const onPullRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refreshMe();
+      try {
+        const [a, sh, n, m] = await Promise.all([
+          api.subscriptionCareAccess(),
+          api.shiftsList(),
+          api.notesList(),
+          api.matchesList(),
+        ]);
+        applyCareSpaceResponse(a, sh.shifts, n.notes, m.matches);
+        const u = useAuthStore.getState().user;
+        if (a.canUseCareSpace && u?.googleCalendarConnected === true) {
+          await loadGoogleCalendarForVisibleMonth();
+        } else {
+          setGoogleEvents([]);
+          setGoogleMeta({ connected: false });
+        }
+      } catch {
+        setAccess(null);
+        setShifts([]);
+        setNotes([]);
+        setMatches([]);
+        setSelectedPeerId('');
+        setGoogleEvents([]);
+        setGoogleMeta({ connected: false });
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshMe, applyCareSpaceResponse, loadGoogleCalendarForVisibleMonth]);
+
+  const unlocked = access != null && access.canUseCareSpace;
+  const googleLinked = user?.googleCalendarConnected === true;
+
+  useEffect(() => {
+    if (!unlocked || !googleLinked) {
+      setGoogleEvents([]);
+      setGoogleMeta({ connected: false });
+      return;
+    }
+    void loadGoogleCalendarForVisibleMonth();
+  }, [unlocked, googleLinked, loadGoogleCalendarForVisibleMonth]);
 
   const startTrial = async () => {
     try {
@@ -137,8 +257,6 @@ export default function CareSpaceScreen() {
       Alert.alert('Trial', e instanceof Error ? e.message : 'Could not start trial');
     }
   };
-
-  const unlocked = access != null && access.canUseCareSpace;
 
   const shiftsForPeer = useMemo(() => {
     if (!selectedPeerId) return shifts;
@@ -175,30 +293,76 @@ export default function CareSpaceScreen() {
     );
   }, [shiftsForPeer, selectedDate]);
 
+  const googleOnSelectedDay = useMemo(() => {
+    if (!selectedDate) return [];
+    return googleEvents
+      .filter((ev) => eventTouchesYmd(ev, selectedDate))
+      .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  }, [googleEvents, selectedDate]);
+
+  const upcomingGooglePersonal = useMemo(() => {
+    const now = Date.now();
+    return [...googleEvents]
+      .filter((e) => new Date(e.end).getTime() >= now)
+      .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+      .slice(0, 12);
+  }, [googleEvents]);
+
   const markedDates = useMemo(() => {
-    const m: Record<
-      string,
-      { marked?: boolean; dotColor?: string; selected?: boolean; selectedColor?: string }
-    > = {};
+    type Dot = { color: string };
+    const byDate: Record<string, { dots: Dot[] }> = {};
+    const addDot = (date: string, color: string) => {
+      const cur = byDate[date] ?? { dots: [] as Dot[] };
+      if (!cur.dots.some((d) => d.color === color)) cur.dots.push({ color });
+      byDate[date] = cur;
+    };
+
     for (const s of shiftsForPeer) {
-      const prev = m[s.date];
-      m[s.date] = { ...prev, marked: true, dotColor: c.primary };
+      addDot(s.date, c.success);
+    }
+    for (const ev of googleEvents) {
+      for (const d of eachLocalDayBetween(ev.start, ev.end, ev.allDay)) {
+        addDot(d, c.textSecondary);
+      }
+    }
+
+    const m: Record<string, Record<string, unknown>> = {};
+    for (const [date, { dots }] of Object.entries(byDate)) {
+      m[date] = { marked: true, dots };
     }
     if (selectedDate) {
-      const prev = m[selectedDate];
+      const prev = m[selectedDate] ?? { dots: [] as Dot[] };
       m[selectedDate] = {
-        marked: prev?.marked ?? false,
-        dotColor: c.primary,
+        ...prev,
+        marked: true,
+        dots: (prev.dots as Dot[]) ?? [],
         selected: true,
         selectedColor: c.primary,
+        selectedTextColor: c.onPrimary,
       };
     }
     return m;
-  }, [shiftsForPeer, selectedDate, c.primary]);
+  }, [shiftsForPeer, googleEvents, selectedDate, c.primary, c.success, c.textSecondary, c.onPrimary]);
 
   const calendarTheme = useMemo(
-    () => ({ todayTextColor: c.primary, selectedDayBackgroundColor: c.primary }),
-    [c.primary],
+    () => ({
+      backgroundColor: c.background,
+      calendarBackground: c.surface,
+      textSectionTitleColor: c.textSecondary,
+      monthTextColor: c.text,
+      textMonthFontWeight: '600' as const,
+      dayTextColor: c.text,
+      textDayFontWeight: '500' as const,
+      todayTextColor: c.primary,
+      todayBackgroundColor: c.brandYellowTint,
+      selectedDayBackgroundColor: c.primary,
+      selectedDayTextColor: c.onPrimary,
+      textDisabledColor: c.textSubtle,
+      dotColor: c.success,
+      selectedDotColor: c.onPrimary,
+      arrowColor: c.primary,
+    }),
+    [c],
   );
 
   const styles = useMemo(() => {
@@ -208,14 +372,14 @@ export default function CareSpaceScreen() {
       sub: { ...t.sub, marginVertical: layout.sectionGap - spacing.sm },
       card: { marginBottom: spacing.md },
       emptyUpcoming: { ...t.bodySecondary, marginBottom: spacing.md },
-      cardTitle: { ...t.label, color: c.primaryDark },
+      cardTitle: { ...t.label, color: c.text },
       cardBody: { ...t.body, marginTop: spacing.xs },
       cardMuted: { ...t.caption, marginTop: spacing.sm },
       badge: { ...t.caption, marginTop: spacing.sm, fontWeight: '600', color: c.text, fontFamily: f.semibold },
       listBlock: { marginTop: spacing.lg },
       sectionTitle: {
         ...t.label,
-        color: c.primaryDark,
+        color: c.text,
         marginBottom: spacing.sm,
       },
       historyRow: {
@@ -252,16 +416,42 @@ export default function CareSpaceScreen() {
         borderWidth: 1,
         borderColor: c.border,
       },
-      dateFocusBannerTitle: { ...t.body },
-      clearDate: { ...t.caption, color: c.primaryDark, fontWeight: '600', fontFamily: f.semibold, marginTop: spacing.sm },
+      dateFocusBannerTitle: { ...t.body, color: c.brandYellowText },
+      clearDate: { ...t.caption, color: c.brandYellowText, fontWeight: '600', fontFamily: f.semibold, marginTop: spacing.sm },
       familyActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.xs, paddingLeft: spacing.md, paddingBottom: spacing.sm },
-      actionLink: { ...t.caption, color: c.primaryDark, fontWeight: '600', fontFamily: f.semibold, textDecorationLine: 'underline' },
+      actionLink: { ...t.caption, color: c.primary, fontWeight: '600', fontFamily: f.semibold, textDecorationLine: 'underline' },
       actionLinkDanger: { ...t.caption, color: c.danger, fontWeight: '600', fontFamily: f.semibold, textDecorationLine: 'underline' },
       dayEmpty: { ...t.bodySecondary, marginTop: spacing.sm },
+      googleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: layout.listRowMinHeight,
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: c.border,
+        backgroundColor: c.surface,
+        borderLeftWidth: 3,
+        borderLeftColor: c.textSecondary,
+      },
+      googleMain: { flex: 1, marginRight: spacing.sm, minWidth: 0 },
+      googleTitle: { ...t.sub, fontWeight: '600', color: c.text, fontFamily: f.semibold },
+      googleWhen: { ...t.caption, fontSize: 13, marginTop: 2, color: c.textSecondary },
+      googleLoc: { ...t.caption, fontSize: 12, marginTop: 2, color: c.textSubtle },
+      googleOpenHint: { ...t.caption, fontSize: 12, fontWeight: '600', fontFamily: f.semibold, color: c.primary },
+      googleLegend: { ...t.caption, marginTop: spacing.xs, color: c.textSecondary },
+      googleError: { ...t.caption, marginTop: spacing.sm, color: c.danger },
+      googleHint: { ...t.caption, marginTop: spacing.sm, color: c.textSecondary },
     });
   }, [c, f]);
 
   const openShift = (s: ShiftDto) => router.push(`/shift/${s.id}`);
+
+  const openGoogleCalendarEvent = (ev: GoogleCalendarEventDto) => {
+    if (ev.htmlLink) void Linking.openURL(ev.htmlLink);
+    else Alert.alert('Google Calendar', 'No link is available for this event.');
+  };
 
   const familyReopen = (s: ShiftDto) => {
     void (async () => {
@@ -343,6 +533,28 @@ export default function CareSpaceScreen() {
     </View>
   );
 
+  const renderGoogleRow = (ev: GoogleCalendarEventDto) => (
+    <Pressable
+      key={ev.id}
+      style={styles.googleRow}
+      accessibilityRole="button"
+      accessibilityLabel={`Google Calendar: ${ev.summary}, ${formatGoogleEventWhen(ev)}`}
+      onPress={() => openGoogleCalendarEvent(ev)}>
+      <View style={styles.googleMain}>
+        <Text style={styles.googleTitle} numberOfLines={2}>
+          {ev.summary}
+        </Text>
+        <Text style={styles.googleWhen}>{formatGoogleEventWhen(ev)}</Text>
+        {ev.location ? (
+          <Text style={styles.googleLoc} numberOfLines={1}>
+            {ev.location}
+          </Text>
+        ) : null}
+      </View>
+      {ev.htmlLink ? <Text style={styles.googleOpenHint}>Open</Text> : null}
+    </Pressable>
+  );
+
   if (loading && !access) {
     return (
       <Screen>
@@ -351,9 +563,18 @@ export default function CareSpaceScreen() {
     );
   }
 
+  const refreshControlEl = (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={() => void onPullRefresh()}
+      tintColor={c.primary}
+      colors={[c.primary]}
+    />
+  );
+
   if (!unlocked) {
     return (
-      <Screen scroll>
+      <Screen scroll refreshControl={refreshControlEl}>
         <Text style={styles.h1}>CareSpace</Text>
         <EmptyState
           title="Scheduling and notes are locked"
@@ -393,11 +614,12 @@ export default function CareSpaceScreen() {
   };
 
   return (
-    <Screen scroll>
+    <Screen scroll refreshControl={refreshControlEl}>
       <Text style={styles.h1}>CareSpace</Text>
       <Text style={styles.sub}>
-        Pick a connection and optionally a calendar day — lists and notes update for that context. Families can re-open
-        canceled shifts or delete them from history.
+        Pick a connection and optionally a day — CarePair shifts for that match appear with your linked Google Calendar
+        events (primary calendar) for the month on screen. Pull down to refresh shifts, notes, matches, and Google events.
+        Families can re-open canceled shifts or delete them from history.
       </Text>
       {carePeers.length > 1 ? (
         <>
@@ -411,7 +633,9 @@ export default function CareSpaceScreen() {
               accessibilityLabel={`CareSpace with ${m.displayName}${m.city ? `, ${m.city}` : ''}`}
               accessibilityState={{ selected: selectedPeerId === m.id }}
               onPress={() => setSelectedPeerId(m.id)}>
-              <Text style={styles.pickText} importantForAccessibility="no">
+              <Text
+                style={[styles.pickText, selectedPeerId === m.id && { color: c.brandYellowText }]}
+                importantForAccessibility="no">
                 {m.displayName}
                 {m.city ? ` · ${m.city}` : ''}
               </Text>
@@ -421,13 +645,26 @@ export default function CareSpaceScreen() {
       ) : null}
 
       <Text style={[styles.sectionTitle, { marginTop: spacing.md }]}>Calendar</Text>
-      <Text style={styles.pickerHint}>Tap a date to focus this screen on that day. Tap the same date again to return to the full upcoming view.</Text>
+      <Text style={styles.pickerHint}>
+        Swipe to change month (your Google events reload for that month). Tap a date to focus the lists below; tap again to
+        clear.
+      </Text>
       <Calendar
         markedDates={markedDates}
+        markingType="multi-dot"
         onDayPress={onDayPress}
+        onMonthChange={(mo) => setVisibleMonth({ year: mo.year, month: mo.month })}
         theme={calendarTheme}
         enableSwipeMonths
       />
+      {googleMeta.error ? <Text style={styles.googleError}>{googleMeta.error}</Text> : null}
+      {!googleLinked ? (
+        <Text style={styles.googleHint}>
+          Link Google Calendar in Settings to show your other primary-calendar events here alongside CarePair shifts.
+        </Text>
+      ) : (
+        <Text style={styles.googleLegend}>Dots: green = CarePair shifts · gray = your Google Calendar (other events)</Text>
+      )}
 
       {selectedDate ? (
         <View style={{ marginTop: spacing.md }}>
@@ -437,14 +674,22 @@ export default function CareSpaceScreen() {
               <Text style={styles.clearDate}>Clear date filter</Text>
             </Pressable>
           </View>
-          {shiftsOnSelectedDay.length === 0 ? (
-            <Text style={styles.dayEmpty}>No shifts with this connection on this date.</Text>
-          ) : (
+          {shiftsOnSelectedDay.length === 0 && googleOnSelectedDay.length === 0 ? (
+            <Text style={styles.dayEmpty}>No shifts with this connection and no other Google events on this date.</Text>
+          ) : null}
+          {shiftsOnSelectedDay.length > 0 ? (
             <View style={styles.listBlock}>
-              <Text style={styles.sectionTitle}>Shifts on this date</Text>
+              <Text style={styles.sectionTitle}>CarePair shifts</Text>
               {shiftsOnSelectedDay.map((s) => renderShiftRow(s, 'day'))}
             </View>
-          )}
+          ) : null}
+          {googleOnSelectedDay.length > 0 ? (
+            <View style={[styles.listBlock, { marginTop: shiftsOnSelectedDay.length ? spacing.lg : 0 }]}>
+              <Text style={styles.sectionTitle}>Google Calendar</Text>
+              <Text style={styles.pickerHint}>Personal events from your primary calendar (CarePair-created shift events are hidden here).</Text>
+              {googleOnSelectedDay.map((ev) => renderGoogleRow(ev))}
+            </View>
+          ) : null}
         </View>
       ) : (
         <>
@@ -472,6 +717,13 @@ export default function CareSpaceScreen() {
             <View style={styles.listBlock}>
               <Text style={styles.sectionTitle}>More upcoming</Text>
               {moreUpcoming.map((s) => renderShiftRow(s, 'upcoming'))}
+            </View>
+          ) : null}
+          {googleLinked && upcomingGooglePersonal.length > 0 ? (
+            <View style={styles.listBlock}>
+              <Text style={styles.sectionTitle}>Google Calendar (this month)</Text>
+              <Text style={styles.pickerHint}>Other primary-calendar events in the month you are viewing. Tap to open in Google.</Text>
+              {upcomingGooglePersonal.map((ev) => renderGoogleRow(ev))}
             </View>
           ) : null}
           {historyRows.length > 0 ? (

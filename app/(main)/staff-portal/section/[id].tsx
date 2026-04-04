@@ -65,7 +65,7 @@ function TestersSection() {
     const t = createTypographyStyles(c, f);
     return StyleSheet.create({
       sub: { ...t.caption, marginBottom: spacing.md, lineHeight: 20 },
-      section: { ...t.label, color: c.primaryDark, marginTop: spacing.lg, marginBottom: spacing.sm },
+      section: { ...t.label, color: c.text, marginTop: spacing.lg, marginBottom: spacing.sm },
       rowText: { ...t.body, flex: 1, marginRight: spacing.sm },
       meta: { ...t.caption, marginTop: spacing.xs },
       err: { ...t.body, color: c.danger, marginBottom: spacing.md },
@@ -576,7 +576,7 @@ export default function StaffPortalSectionScreen() {
       headline: { ...t.screenTitle, marginBottom: spacing.sm },
       body: { ...t.body, color: c.textSecondary, lineHeight: 22 },
       metricLabel: { ...t.body, flex: 1 },
-      metricValue: { ...t.sectionTitle, fontSize: 20, color: c.primaryDark },
+      metricValue: { ...t.sectionTitle, fontSize: 20, color: c.primary },
       err: { ...t.body, color: c.danger },
       logAction: { ...t.body, fontWeight: '600', marginTop: spacing.xs },
       logDetail: { ...t.caption, marginTop: spacing.xs },
@@ -589,7 +589,7 @@ export default function StaffPortalSectionScreen() {
         backgroundColor: c.primaryMuted,
         marginBottom: spacing.xs,
       },
-      badgeText: { fontSize: 12, fontWeight: '600', color: c.primaryDark, fontFamily: f.semibold },
+      badgeText: { fontSize: 12, fontWeight: '600', color: c.brandYellowText, fontFamily: f.semibold },
     });
   }, [c, f]);
 

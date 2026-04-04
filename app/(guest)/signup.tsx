@@ -33,7 +33,7 @@ export default function SignupScreen() {
       },
       roleChipOn: { borderColor: c.primary, backgroundColor: c.primaryMuted },
       roleText: { fontWeight: '600', color: c.text, fontFamily: f.semibold },
-      roleTextOn: { color: c.primaryDark, fontFamily: f.semibold },
+      roleTextOn: { color: c.brandYellowText, fontFamily: f.semibold },
       termsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, marginBottom: spacing.lg },
       box: {
         width: 22,

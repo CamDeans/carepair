@@ -38,7 +38,7 @@ export default function StaffPortalHomeScreen() {
         backgroundColor: c.primaryMuted,
         borderRadius: radius.lg,
       },
-      adminText: { ...t.sub, color: c.primaryDark, fontWeight: '600', fontFamily: f.semibold },
+      adminText: { ...t.sub, color: c.text, fontWeight: '600', fontFamily: f.semibold },
     });
   }, [c, f]);
 

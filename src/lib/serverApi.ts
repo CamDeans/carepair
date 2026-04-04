@@ -625,6 +625,24 @@ export async function googleCalendarDisconnect() {
   return request<{ ok: boolean }>('/integrations/google/calendar/disconnect', { method: 'DELETE' });
 }
 
+export type GoogleCalendarEventDto = {
+  id: string;
+  summary: string;
+  start: string;
+  end: string;
+  allDay: boolean;
+  htmlLink?: string;
+  location?: string;
+};
+
+export async function googleCalendarEvents(timeMin: string, timeMax: string) {
+  const qs = new URLSearchParams({ timeMin, timeMax });
+  return request<{ connected: boolean; events: GoogleCalendarEventDto[]; error?: string }>(
+    `/integrations/google/calendar/events?${qs.toString()}`,
+    { method: 'GET' },
+  );
+}
+
 export type MatchPeer = { id: string; role: UserRole; displayName: string; city?: string };
 
 export async function matchesList() {

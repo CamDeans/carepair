@@ -113,7 +113,7 @@ export default function SettingsScreen() {
     if (calendarDisconnecting) return;
     Alert.alert(
       'Disconnect Google Calendar?',
-      'Confirmed shifts will stop syncing to your Google Calendar until you connect again.',
+      'Confirmed shifts will stop syncing to Google, and CareSpace will no longer show your other Google Calendar events until you connect again.',
       [
         { text: 'Cancel', style: 'cancel' },
         {

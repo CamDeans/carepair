@@ -35,7 +35,7 @@ export function DiscoverCard({ title, subtitle, compatibility, imageUri, onPress
       },
       badgeText: {
         fontWeight: '600',
-        color: c.primaryDark,
+        color: c.brandYellowText,
         fontSize: 13,
         fontFamily: f.semibold,
       },

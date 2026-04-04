@@ -76,8 +76,8 @@ export function Button({
         borderColor: 'transparent',
       },
       accent: {
-        backgroundColor: c.accent,
-        borderColor: c.accent,
+        backgroundColor: c.success,
+        borderColor: c.success,
       },
       danger: {
         backgroundColor: c.danger,
@@ -90,8 +90,7 @@ export function Button({
         borderColor: c.primaryMid,
       },
       pressedAccent: {
-        backgroundColor: c.accentDark,
-        borderColor: c.accentDark,
+        opacity: 0.9,
       },
       pressedDanger: {
         opacity: 0.88,
