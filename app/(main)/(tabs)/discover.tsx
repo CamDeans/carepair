@@ -169,11 +169,7 @@ export default function DiscoverScreen() {
         ) : loading ? (
           <ActivityIndicator color={c.primary} style={{ marginVertical: spacing.lg }} />
         ) : coords ? (
-          <EmptyState
-            title="No more profiles nearby"
-            description="Try again later or widen your radius in Settings."
-            primaryAction={{ title: 'Refresh', onPress: () => void load() }}
-          />
+          <EmptyState title="No more profiles nearby" description="Try again later or widen your radius in Settings." />
         ) : (
           <EmptyState title="Waiting for location" description="Allow location when prompted." />
         )}

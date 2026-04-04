@@ -3,6 +3,7 @@ import { router, type Href } from 'expo-router';
 import { useMemo } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
+import { useAuthStore } from '@/src/store/authStore';
 import type { AppearancePreference } from '@/src/store/uiPreferencesStore';
 import { useUiPreferencesStore } from '@/src/store/uiPreferencesStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
@@ -16,6 +17,8 @@ function appearanceLabel(a: AppearancePreference): string {
 
 export function MainTabHeaderActions() {
   const { colors: c } = useCarePairUi();
+  const user = useAuthStore((s) => s.user);
+  const showServiceStatus = user?.role === 'admin' || user?.role === 'team';
   const appearance = useUiPreferencesStore((s) => s.appearance);
   const setAppearance = useUiPreferencesStore((s) => s.setAppearance);
 
@@ -39,13 +42,15 @@ export function MainTabHeaderActions() {
 
   return (
     <View style={styles.row}>
-      <Pressable
-        style={styles.hit}
-        accessibilityRole="button"
-        accessibilityLabel="Server status"
-        onPress={() => router.push('/system-health' as Href)}>
-        <FontAwesome name="heartbeat" size={20} color={c.primary} />
-      </Pressable>
+      {showServiceStatus ? (
+        <Pressable
+          style={styles.hit}
+          accessibilityRole="button"
+          accessibilityLabel="Server status"
+          onPress={() => router.push('/system-health' as Href)}>
+          <FontAwesome name="heartbeat" size={20} color={c.primary} />
+        </Pressable>
+      ) : null}
       <Pressable
         style={styles.hit}
         accessibilityRole="button"

@@ -30,7 +30,10 @@ export default function ConversationScreen() {
     const p = effectiveConsumerPersona(user);
     if (p === 'family') return pickProfilePhotoUri(user.familyProfile ?? undefined);
     if (p === 'caregiver') return pickProfilePhotoUri(user.caregiverProfile ?? undefined);
-    return null;
+    return (
+      pickProfilePhotoUri(user.familyProfile ?? undefined) ??
+      pickProfilePhotoUri(user.caregiverProfile ?? undefined)
+    );
   }, [user]);
 
   const [messages, setMessages] = useState<ChatMessageDto[]>([]);

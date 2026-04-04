@@ -70,8 +70,16 @@ export function Screen({
   const scrollContentStyle = contentPaddingH ? styles.scrollContent : styles.scrollContentBleedH;
 
   const entering = motion.baseMs > 0 ? FadeIn.duration(motion.baseMs) : undefined;
+  /** Reanimated wrapper must participate in flex so nested `flex:1` (e.g. onboarding FlatList) gets height. */
+  const wrapStyle = scroll ? ({ flexGrow: 1 } as const) : ({ flex: 1 } as const);
   const wrap = (node: ReactNode) =>
-    entering ? <Animated.View entering={entering}>{node}</Animated.View> : <>{node}</>;
+    entering ? (
+      <Animated.View entering={entering} style={wrapStyle}>
+        {node}
+      </Animated.View>
+    ) : (
+      <View style={wrapStyle}>{node}</View>
+    );
 
   if (scroll) {
     return (

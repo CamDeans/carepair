@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ProfilePhoto } from '@/src/components/ui/ProfilePhoto';
+import { effectiveConsumerPersona } from '@/src/lib/effectivePersona';
 import { meProfilePreview } from '@/src/lib/meProfilePreview';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
@@ -15,7 +16,6 @@ import { radius, spacing } from '@/src/theme/tokens';
 export function UserProfileStrip() {
   const user = useAuthStore((s) => s.user);
   const { colors: c, fonts: f } = useCarePairUi();
-  const preview = meProfilePreview(user);
 
   const styles = useMemo(() => {
     const t = createTypographyStyles(c, f);
@@ -45,6 +45,9 @@ export function UserProfileStrip() {
     });
   }, [c, f]);
 
+  /** Staff / admin use the staff portal and Settings — not the consumer profile editor. */
+  if (!user || effectiveConsumerPersona(user) === null) return null;
+  const preview = meProfilePreview(user);
   if (!preview) return null;
 
   return (

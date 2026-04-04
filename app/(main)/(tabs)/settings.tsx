@@ -349,7 +349,9 @@ export default function SettingsScreen() {
           />
         ) : null}
         <Row title="Edit profile" onPress={() => router.push('/profile-edit')} />
-        <Row title="Service status" onPress={() => router.push('/system-health' as Href)} />
+        {user?.role === 'admin' || user?.role === 'team' ? (
+          <Row title="Service status" onPress={() => router.push('/system-health' as Href)} />
+        ) : null}
         <Row title="Data & privacy" onPress={() => router.push('/data-privacy' as Href)} />
         <Row title="Subscription" onPress={() => router.push('/subscription')} />
         {calendarLinked ? (
