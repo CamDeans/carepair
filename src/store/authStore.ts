@@ -29,7 +29,13 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, role: UserRole, acceptTerms: boolean) => Promise<void>;
   /** Admin / team / valued_tester — server enforces email allowlists and tester cap. */
-  registerStaff: (email: string, password: string, role: StaffRegisterRole, acceptTerms: boolean) => Promise<void>;
+  registerStaff: (
+    email: string,
+    password: string,
+    role: StaffRegisterRole,
+    acceptTerms: boolean,
+    testerPersona?: 'family' | 'caregiver',
+  ) => Promise<void>;
   loginWithGoogleIdToken: (idToken: string, role?: UserRole) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -131,13 +137,14 @@ export const useAuthStore = create<AuthState>()(
         set({ user: data.user });
         void registerExpoPushForCurrentUser();
       },
-      registerStaff: async (email, password, role, acceptTerms) => {
+      registerStaff: async (email, password, role, acceptTerms, testerPersona) => {
         if (!acceptTerms) throw new Error('Accept terms to continue.');
         const v = credentialsSchema.safeParse({ email, password });
         if (!v.success) throw new Error(formatZodError(v.error));
         const data = await serverApi.authRegister(v.data.email, v.data.password, role, {
           termsAccepted: true,
           termsVersion: getTermsVersionLabel(),
+          ...(role === 'valued_tester' && testerPersona ? { testerPersona } : {}),
         });
         await persistAccessToken(data.token);
         await persistRefreshToken(data.refreshToken);

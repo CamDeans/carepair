@@ -49,6 +49,8 @@ export type MeUser = {
   isAdmin?: boolean;
   canOpenStaffPortal?: boolean;
   valuedTesterAccessUntil?: string | null;
+  /** Valued tester: which consumer journey they are exercising. */
+  valuedTesterPersona?: 'family' | 'caregiver' | null;
   termsAcceptedAt?: string | null;
   termsVersion?: string;
   emailVerifiedAt?: string | null;
@@ -78,7 +80,7 @@ export async function authRegister(
   email: string,
   password: string,
   role: UserRole | StaffRegisterRole,
-  opts?: { termsAccepted?: boolean; termsVersion?: string },
+  opts?: { termsAccepted?: boolean; termsVersion?: string; testerPersona?: 'family' | 'caregiver' },
 ) {
   return request<AuthTokensResponse>('/auth/register', {
     method: 'POST',
@@ -88,6 +90,7 @@ export async function authRegister(
       role,
       ...(opts?.termsAccepted === true ? { termsAccepted: true } : {}),
       ...(opts?.termsVersion ? { termsVersion: opts.termsVersion } : {}),
+      ...(opts?.testerPersona ? { testerPersona: opts.testerPersona } : {}),
     }),
   });
 }
@@ -312,6 +315,13 @@ export async function profilePatchCaregiver(patch: Record<string, unknown>) {
   return request<{ caregiverProfile: Record<string, unknown> }>('/profile/caregiver', {
     method: 'PATCH',
     body: JSON.stringify(patch),
+  });
+}
+
+export async function profilePatchTesterPersona(persona: 'family' | 'caregiver') {
+  return request<{ valuedTesterPersona: string; profilePublished: boolean }>('/profile/tester-persona', {
+    method: 'PATCH',
+    body: JSON.stringify({ persona }),
   });
 }
 

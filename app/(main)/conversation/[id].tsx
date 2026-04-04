@@ -8,6 +8,7 @@ import { ProfilePhoto } from '@/src/components/ui/ProfilePhoto';
 import { TextField } from '@/src/components/ui/TextField';
 import type { ChatMessageDto, ConversationPeerDto } from '@/src/lib/serverApi';
 import * as api from '@/src/lib/serverApi';
+import { effectiveConsumerPersona } from '@/src/lib/effectivePersona';
 import { pickProfilePhotoUri } from '@/src/lib/profilePhoto';
 import { hapticImpactLight } from '@/src/lib/haptics';
 import { getChatSocket } from '@/src/lib/socket';
@@ -26,8 +27,9 @@ export default function ConversationScreen() {
   const myId = user?.id;
   const myPhotoUri = useMemo(() => {
     if (!user) return null;
-    if (user.role === 'family') return pickProfilePhotoUri(user.familyProfile ?? undefined);
-    if (user.role === 'caregiver') return pickProfilePhotoUri(user.caregiverProfile ?? undefined);
+    const p = effectiveConsumerPersona(user);
+    if (p === 'family') return pickProfilePhotoUri(user.familyProfile ?? undefined);
+    if (p === 'caregiver') return pickProfilePhotoUri(user.caregiverProfile ?? undefined);
     return null;
   }, [user]);
 

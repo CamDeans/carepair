@@ -8,6 +8,7 @@ import { Button } from '@/src/components/ui/Button';
 import { Card } from '@/src/components/ui/Card';
 import { EmptyState } from '@/src/components/ui/EmptyState';
 import { Screen } from '@/src/components/ui/Screen';
+import { effectiveConsumerPersona } from '@/src/lib/effectivePersona';
 import * as api from '@/src/lib/serverApi';
 import type { CareAccessDto, CareNoteRow, MatchPeer, ShiftDto } from '@/src/lib/serverApi';
 import { useAuthStore } from '@/src/store/authStore';
@@ -52,8 +53,9 @@ function noteForPair(n: CareNoteRow, me: string, peer: string): boolean {
 
 export default function CareSpaceScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
-  const role = useAuthStore((s) => s.user?.role);
-  const myId = useAuthStore((s) => s.user?.id);
+  const user = useAuthStore((s) => s.user);
+  const persona = effectiveConsumerPersona(user);
+  const myId = user?.id;
   const refreshMe = useAuthStore((s) => s.refreshMe);
   const [access, setAccess] = useState<CareAccessDto | null>(null);
   const [shifts, setShifts] = useState<ShiftDto[]>([]);
@@ -64,10 +66,10 @@ export default function CareSpaceScreen() {
   const [loading, setLoading] = useState(true);
 
   const carePeers = useMemo(() => {
-    if (role === 'family') return matches.filter((m) => m.role === 'caregiver');
-    if (role === 'caregiver') return matches.filter((m) => m.role === 'family');
+    if (persona === 'family') return matches.filter((m) => m.role === 'caregiver');
+    if (persona === 'caregiver') return matches.filter((m) => m.role === 'family');
     return [];
-  }, [matches, role]);
+  }, [matches, persona]);
 
   const reloadShiftsOnly = useCallback(async () => {
     try {
@@ -96,9 +98,9 @@ export default function CareSpaceScreen() {
           setNotes(n.notes);
           setMatches(m.matches);
           const peers =
-            role === 'family'
+            persona === 'family'
               ? m.matches.filter((x) => x.role === 'caregiver')
-              : role === 'caregiver'
+              : persona === 'caregiver'
                 ? m.matches.filter((x) => x.role === 'family')
                 : [];
           setSelectedPeerId((cur) => {
@@ -121,7 +123,7 @@ export default function CareSpaceScreen() {
       return () => {
         cancelled = true;
       };
-    }, [role]),
+    }, [persona]),
   );
 
   const startTrial = async () => {
@@ -140,10 +142,10 @@ export default function CareSpaceScreen() {
 
   const shiftsForPeer = useMemo(() => {
     if (!selectedPeerId) return shifts;
-    if (role === 'family') return shifts.filter((s) => s.caregiverUserId === selectedPeerId);
-    if (role === 'caregiver') return shifts.filter((s) => s.familyUserId === selectedPeerId);
+    if (persona === 'family') return shifts.filter((s) => s.caregiverUserId === selectedPeerId);
+    if (persona === 'caregiver') return shifts.filter((s) => s.familyUserId === selectedPeerId);
     return shifts;
-  }, [shifts, selectedPeerId, role]);
+  }, [shifts, selectedPeerId, persona]);
 
   const latestNoteForPeer = useMemo(() => {
     if (!myId || !selectedPeerId) return null;
@@ -328,7 +330,7 @@ export default function CareSpaceScreen() {
           {s.status.replace(/_/g, ' ')}
         </Text>
       </Pressable>
-      {role === 'family' && s.status === 'canceled' ? (
+      {persona === 'family' && s.status === 'canceled' ? (
         <View style={styles.familyActions}>
           <Pressable onPress={() => familyReopen(s)} accessibilityRole="button" accessibilityLabel="Re-open shift">
             <Text style={styles.actionLink}>Re-open</Text>
@@ -370,7 +372,7 @@ export default function CareSpaceScreen() {
     );
   }
 
-  const peerLabel = role === 'family' ? 'caregiver' : 'family';
+  const peerLabel = persona === 'family' ? 'caregiver' : 'family';
 
   const onDayPress = (day: { dateString: string }) => {
     setSelectedDate((prev) => (prev === day.dateString ? null : day.dateString));
@@ -454,16 +456,16 @@ export default function CareSpaceScreen() {
               </Text>
               <Text style={styles.cardMuted}>{next.notes}</Text>
               <Text style={styles.badge}>Status: {next.status}</Text>
-              {role === 'caregiver' ? (
+              {persona === 'caregiver' ? (
                 <Button title="Respond to shift" variant="secondary" onPress={() => router.push(`/shift/${next.id}`)} />
               ) : null}
             </Card>
           ) : shiftsForPeer.length === 0 ? (
-            <Text style={styles.emptyUpcoming}>No shifts yet.{role === 'family' ? ' Add a shift when you have a match.' : ''}</Text>
+            <Text style={styles.emptyUpcoming}>No shifts yet.{persona === 'family' ? ' Add a shift when you have a match.' : ''}</Text>
           ) : (
             <Text style={styles.emptyUpcoming}>
               No upcoming shifts. Pick a date on the calendar or see history below
-              {role === 'family' ? ', or add a new shift.' : '.'}
+              {persona === 'family' ? ', or add a new shift.' : '.'}
             </Text>
           )}
           {moreUpcoming.length > 0 ? (
@@ -483,7 +485,7 @@ export default function CareSpaceScreen() {
       )}
 
       <View style={{ gap: spacing.md, marginTop: spacing.sm }}>
-        {role === 'family' ? (
+        {persona === 'family' ? (
           <Button title="Add shift" onPress={goAddShift} />
         ) : null}
         <Button

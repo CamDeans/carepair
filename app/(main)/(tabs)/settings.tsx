@@ -13,8 +13,9 @@ import { layout, radius, spacing } from '@/src/theme/tokens';
 
 export default function SettingsScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
-  const email = useAuthStore((s) => s.user?.email);
-  const calendarLinked = useAuthStore((s) => s.user?.googleCalendarConnected === true);
+  const user = useAuthStore((s) => s.user);
+  const email = user?.email;
+  const calendarLinked = user?.googleCalendarConnected === true;
   const refreshMe = useAuthStore((s) => s.refreshMe);
   const logout = useAuthStore((s) => s.logout);
   const [calendarOpening, setCalendarOpening] = useState(false);
@@ -159,6 +160,56 @@ export default function SettingsScreen() {
       <View style={styles.block}>
         {staffPortalAllowed ? (
           <Row title="Staff portal" onPress={() => router.push('/staff-portal' as Href)} />
+        ) : null}
+        {user?.role === 'valued_tester' ? (
+          <Row
+            title={`Tester mode: ${user.valuedTesterPersona === 'caregiver' ? 'Caregiver' : 'Family'}`}
+            onPress={() => {
+              Alert.alert(
+                'Switch tester mode',
+                'You will need to complete and publish the profile for the other flow. Your listing is hidden until you publish again.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Test as family',
+                    onPress: () => {
+                      void (async () => {
+                        if (user.valuedTesterPersona === 'family') {
+                          Alert.alert('Tester mode', 'You are already in the family flow.');
+                          return;
+                        }
+                        try {
+                          await api.profilePatchTesterPersona('family');
+                          await refreshMe();
+                          router.replace('/');
+                        } catch (e) {
+                          Alert.alert('Could not switch', e instanceof Error ? e.message : 'Try again.');
+                        }
+                      })();
+                    },
+                  },
+                  {
+                    text: 'Test as caregiver',
+                    onPress: () => {
+                      void (async () => {
+                        if (user.valuedTesterPersona === 'caregiver') {
+                          Alert.alert('Tester mode', 'You are already in the caregiver flow.');
+                          return;
+                        }
+                        try {
+                          await api.profilePatchTesterPersona('caregiver');
+                          await refreshMe();
+                          router.replace('/');
+                        } catch (e) {
+                          Alert.alert('Could not switch', e instanceof Error ? e.message : 'Try again.');
+                        }
+                      })();
+                    },
+                  },
+                ],
+              );
+            }}
+          />
         ) : null}
         <Row title="Edit profile" onPress={() => router.push('/profile-edit')} />
         <Row title="Data & privacy" onPress={() => router.push('/data-privacy' as Href)} />

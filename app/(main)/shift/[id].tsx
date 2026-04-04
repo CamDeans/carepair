@@ -5,6 +5,7 @@ import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
 import { Button } from '@/src/components/ui/Button';
 import { Screen } from '@/src/components/ui/Screen';
 import { TextField } from '@/src/components/ui/TextField';
+import { effectiveConsumerPersona } from '@/src/lib/effectivePersona';
 import * as api from '@/src/lib/serverApi';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
@@ -15,6 +16,7 @@ export default function ShiftDetailScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
   const { id } = useLocalSearchParams<{ id: string }>();
   const user = useAuthStore((s) => s.user);
+  const persona = effectiveConsumerPersona(user);
   const [shift, setShift] = useState<api.ShiftDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [editDate, setEditDate] = useState('');
@@ -85,7 +87,7 @@ export default function ShiftDetailScreen() {
   };
 
   const isFamilyOwner =
-    user?.role === 'family' && shift !== null && shift.familyUserId === user.id;
+    persona === 'family' && shift !== null && user && shift.familyUserId === user.id;
 
   const cancelShift = async () => {
     if (!shift) return;
@@ -190,7 +192,7 @@ export default function ShiftDetailScreen() {
       </Text>
       <Text style={styles.notes}>{shift.notes}</Text>
       <Text style={styles.status}>Status: {shift.status}</Text>
-      {user?.role === 'caregiver' && shift.status === 'pending' ? (
+      {persona === 'caregiver' && shift.status === 'pending' ? (
         <Text style={styles.notes}>
           Review the time below, then accept to confirm with the family or request a change.
         </Text>
@@ -207,7 +209,7 @@ export default function ShiftDetailScreen() {
         </>
       ) : null}
 
-      {user?.role === 'caregiver' && shift.status !== 'canceled' && shift.status !== 'confirmed' ? (
+      {persona === 'caregiver' && shift.status !== 'canceled' && shift.status !== 'confirmed' ? (
         <View style={styles.row}>
           <Button title="Accept" onPress={() => void setStatus('confirmed')} style={styles.flex} />
           <Button title="Request change" variant="secondary" onPress={() => void setStatus('change_requested')} style={styles.flex} />

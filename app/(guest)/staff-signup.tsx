@@ -22,6 +22,8 @@ export default function StaffSignupScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<StaffRegisterRole>('team');
+  /** Used when role is valued_tester — must match server `testerPersona`. */
+  const [testerPersona, setTesterPersona] = useState<'family' | 'caregiver'>('family');
   const [terms, setTerms] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -47,6 +49,8 @@ export default function StaffSignupScreen() {
         chipOn: { borderColor: c.primary, backgroundColor: c.primaryMuted },
         chipTitle: { fontSize: 16, fontWeight: '600', color: c.text, fontFamily: f.semibold },
         chipHint: { fontSize: 13, color: c.textSecondary, marginTop: 4, fontFamily: f.regular },
+        personaBlock: { marginBottom: spacing.lg },
+        personaLabel: { fontSize: 14, fontWeight: '600', color: c.text, marginBottom: spacing.sm, fontFamily: f.semibold },
         termsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.lg },
         terms: { flex: 1, fontSize: 14, color: c.textSecondary, fontFamily: f.regular },
         box: {
@@ -65,7 +69,7 @@ export default function StaffSignupScreen() {
   const submit = async () => {
     setLoading(true);
     try {
-      await registerStaff(email, password, role, terms);
+      await registerStaff(email, password, role, terms, role === 'valued_tester' ? testerPersona : undefined);
       router.replace('/');
     } catch (e) {
       Alert.alert('Could not register', e instanceof Error ? e.message : 'Try again.');
@@ -78,7 +82,7 @@ export default function StaffSignupScreen() {
     <Screen scroll>
       <Text style={styles.h1}>Staff &amp; tester signup</Text>
       <Text style={styles.sub}>
-        Your email must be on the server allowlist (admin / team) or a valued-tester slot must be free. Use the same API as the app.
+        Admin and team emails must be listed in server env vars. Valued testers must be allowlisted in the staff portal or env; they complete the same family or caregiver setup as real users.
       </Text>
       <View style={styles.roles}>
         {ROLES.map((r) => (
@@ -94,6 +98,31 @@ export default function StaffSignupScreen() {
           </Pressable>
         ))}
       </View>
+      {role === 'valued_tester' ? (
+        <View style={styles.personaBlock}>
+          <Text style={styles.personaLabel}>Onboarding to test</Text>
+          <View style={styles.roles}>
+            <Pressable
+              style={[styles.chip, testerPersona === 'family' && styles.chipOn]}
+              onPress={() => setTesterPersona('family')}
+              accessibilityRole="button"
+              accessibilityState={{ selected: testerPersona === 'family' }}
+              accessibilityLabel="Test as family">
+              <Text style={styles.chipTitle}>Family flow</Text>
+              <Text style={styles.chipHint}>Same setup as a family account</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.chip, testerPersona === 'caregiver' && styles.chipOn]}
+              onPress={() => setTesterPersona('caregiver')}
+              accessibilityRole="button"
+              accessibilityState={{ selected: testerPersona === 'caregiver' }}
+              accessibilityLabel="Test as caregiver">
+              <Text style={styles.chipTitle}>Caregiver flow</Text>
+              <Text style={styles.chipHint}>Same setup as a caregiver account</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
       <TextField label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
       <TextField label="Password (8+ characters)" value={password} onChangeText={setPassword} secureTextEntry />
       <Pressable

@@ -79,8 +79,15 @@ export default function GateScreen() {
   if (!hasSeenOnboarding) return <Redirect href="/onboarding" />;
   if (!user) return <Redirect href="/login" />;
   if (!user.profilePublished) {
-    if (user.role === 'admin' || user.role === 'team' || user.role === 'valued_tester') {
+    if (user.role === 'admin' || user.role === 'team') {
       return <Redirect href="/(main)/(tabs)/discover" />;
+    }
+    if (user.role === 'valued_tester') {
+      return user.valuedTesterPersona === 'caregiver' ? (
+        <Redirect href="/caregiver-setup" />
+      ) : (
+        <Redirect href="/family-setup" />
+      );
     }
     if (user.role === 'family') return <Redirect href="/family-setup" />;
     return <Redirect href="/caregiver-setup" />;

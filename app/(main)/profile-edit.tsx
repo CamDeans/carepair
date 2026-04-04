@@ -9,6 +9,7 @@ import { PhotoSlotsRow } from '@/src/components/ui/PhotoSlotsRow';
 import { Screen } from '@/src/components/ui/Screen';
 import { InlineError } from '@/src/components/ui/InlineError';
 import { TextField } from '@/src/components/ui/TextField';
+import { effectiveConsumerPersona } from '@/src/lib/effectivePersona';
 import * as api from '@/src/lib/serverApi';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
@@ -135,7 +136,7 @@ export default function ProfileEditScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
   const user = useAuthStore((s) => s.user);
   const refreshMe = useAuthStore((s) => s.refreshMe);
-  const role = user?.role;
+  const persona = effectiveConsumerPersona(user ?? null);
 
   const [familyForm, setFamilyForm] = useState<FamilyForm>(emptyFamily);
   const [cgForm, setCgForm] = useState<CaregiverForm>(emptyCaregiver);
@@ -187,7 +188,7 @@ export default function ProfileEditScreen() {
   }, [c, f]);
 
   useEffect(() => {
-    if (role === 'family') {
+    if (persona === 'family') {
       const fp = user?.familyProfile as Record<string, unknown> | undefined;
       if (fp) {
         setFamilyForm({
@@ -218,7 +219,7 @@ export default function ProfileEditScreen() {
         const pi = fp.primaryPhotoIndex;
         setPrimaryPhotoIndex(typeof pi === 'number' && pi >= 0 ? pi : 0);
       }
-    } else if (role === 'caregiver') {
+    } else if (persona === 'caregiver') {
       const cp = user?.caregiverProfile as Record<string, unknown> | undefined;
       if (cp) {
         setCgForm({
@@ -249,7 +250,7 @@ export default function ProfileEditScreen() {
       }
     }
     setRadiusKm(String(user?.searchRadiusKm ?? 25));
-  }, [role, user?.familyProfile, user?.caregiverProfile, user?.searchRadiusKm]);
+  }, [persona, user?.familyProfile, user?.caregiverProfile, user?.searchRadiusKm]);
 
   const pickAndUpload = async (kind: 'photo' | 'doc') => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -340,7 +341,7 @@ export default function ProfileEditScreen() {
     setSaveError('');
     setSaving(true);
     try {
-      if (role === 'family') {
+      if (persona === 'family') {
         await api.profilePatchFamily({
           ...familyForm,
           childrenCount: Math.max(1, familyForm.childrenCount),
@@ -350,7 +351,7 @@ export default function ProfileEditScreen() {
           documentUrls: docUrls,
           ...(countFilledUrls(photoUrls) > 0 ? { primaryPhotoIndex } : {}),
         });
-      } else if (role === 'caregiver') {
+      } else if (persona === 'caregiver') {
         await api.profilePatchCaregiver({
           ...cgForm,
           yearsExperience: Math.min(80, Math.max(0, cgForm.yearsExperience)),
@@ -382,7 +383,7 @@ export default function ProfileEditScreen() {
     }
   };
 
-  if (role !== 'family' && role !== 'caregiver') {
+  if (!persona) {
     return (
       <Screen scroll>
         <Text style={styles.h1}>Edit profile</Text>
@@ -432,7 +433,7 @@ export default function ProfileEditScreen() {
 
       <Text style={styles.section}>Documents</Text>
       <Text style={styles.hint}>
-        {role === 'family'
+        {persona === 'family'
           ? 'Supporting documents help verify your household. They are required to stay published when your plan requires them.'
           : 'Verification documents back your experience. They are required to stay published when your plan requires them.'}
       </Text>
@@ -461,7 +462,7 @@ export default function ProfileEditScreen() {
         Radius applies to Discover. Use GPS when you move so nearby matches stay accurate.
       </Text>
 
-      {role === 'family' ? (
+      {persona === 'family' ? (
         <>
           <Text style={styles.section}>Household</Text>
           <TextField label="Your name" value={familyForm.displayName} onChangeText={(t) => setFamilyForm({ ...familyForm, displayName: t })} />
