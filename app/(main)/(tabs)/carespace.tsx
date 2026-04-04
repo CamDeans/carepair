@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 
+import { UserProfileStrip } from '@/src/components/UserProfileStrip';
 import { Button } from '@/src/components/ui/Button';
 import { Card } from '@/src/components/ui/Card';
 import { EmptyState } from '@/src/components/ui/EmptyState';
@@ -368,8 +369,7 @@ export default function CareSpaceScreen() {
   const styles = useMemo(() => {
     const t = createTypographyStyles(c, f);
     return StyleSheet.create({
-      h1: { ...t.screenTitle, marginBottom: spacing.xs },
-      sub: { ...t.sub, marginVertical: layout.sectionGap - spacing.sm },
+      h1: { ...t.screenTitle, marginBottom: spacing.md },
       card: { marginBottom: spacing.md },
       emptyUpcoming: { ...t.bodySecondary, marginBottom: spacing.md },
       cardTitle: { ...t.label, color: c.text },
@@ -575,6 +575,7 @@ export default function CareSpaceScreen() {
   if (!unlocked) {
     return (
       <Screen scroll refreshControl={refreshControlEl}>
+        <UserProfileStrip />
         <Text style={styles.h1}>CareSpace</Text>
         <EmptyState
           title="Scheduling and notes are locked"
@@ -615,16 +616,12 @@ export default function CareSpaceScreen() {
 
   return (
     <Screen scroll refreshControl={refreshControlEl}>
+      <UserProfileStrip />
       <Text style={styles.h1}>CareSpace</Text>
-      <Text style={styles.sub}>
-        Pick a connection and optionally a day — CarePair shifts for that match appear with your linked Google Calendar
-        events (primary calendar) for the month on screen. Pull down to refresh shifts, notes, matches, and Google events.
-        Families can re-open canceled shifts or delete them from history.
-      </Text>
       {carePeers.length > 1 ? (
         <>
           <Text style={styles.sectionTitle}>Which {peerLabel}?</Text>
-          <Text style={styles.pickerHint}>Shifts and notes below follow this match.</Text>
+          <Text style={styles.pickerHint}>Applies to the calendar and lists below.</Text>
           {carePeers.map((m) => (
             <Pressable
               key={m.id}
@@ -645,10 +642,7 @@ export default function CareSpaceScreen() {
       ) : null}
 
       <Text style={[styles.sectionTitle, { marginTop: spacing.md }]}>Calendar</Text>
-      <Text style={styles.pickerHint}>
-        Swipe to change month (your Google events reload for that month). Tap a date to focus the lists below; tap again to
-        clear.
-      </Text>
+      <Text style={styles.pickerHint}>Swipe to change month. Tap a day to focus lists below; tap again to clear.</Text>
       <Calendar
         markedDates={markedDates}
         markingType="multi-dot"

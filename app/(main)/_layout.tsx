@@ -58,6 +58,7 @@ export default function MainLayout() {
       <Stack.Screen name="data-privacy" options={{ title: 'Data & privacy' }} />
       <Stack.Screen name="subscription" options={{ title: 'Subscription' }} />
       <Stack.Screen name="notifications-settings" options={{ title: 'Notifications' }} />
+      <Stack.Screen name="system-health" options={{ title: 'Service status' }} />
       <Stack.Screen name="help" options={{ title: 'Help & support' }} />
       <Stack.Screen name="guidelines" options={{ title: 'Community guidelines' }} />
       <Stack.Screen name="staff-portal" options={{ headerShown: false }} />

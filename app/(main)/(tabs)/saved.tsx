@@ -3,13 +3,14 @@ import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text } from 'react-native';
 
 import { DiscoverCard } from '@/src/components/DiscoverCard';
+import { UserProfileStrip } from '@/src/components/UserProfileStrip';
 import { EmptyState } from '@/src/components/ui/EmptyState';
 import { InlineError } from '@/src/components/ui/InlineError';
 import { Screen } from '@/src/components/ui/Screen';
 import * as api from '@/src/lib/serverApi';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
 import { createTypographyStyles } from '@/src/theme/typography';
-import { layout, spacing } from '@/src/theme/tokens';
+import { spacing } from '@/src/theme/tokens';
 
 export default function SavedScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
@@ -20,8 +21,7 @@ export default function SavedScreen() {
   const styles = useMemo(() => {
     const t = createTypographyStyles(c, f);
     return StyleSheet.create({
-      h1: { ...t.screenTitle, marginBottom: spacing.xs },
-      sub: { ...t.sub, marginBottom: layout.sectionGap - spacing.sm, marginTop: spacing.xs },
+      h1: { ...t.screenTitle, marginBottom: spacing.md },
     });
   }, [c, f]);
 
@@ -60,14 +60,14 @@ export default function SavedScreen() {
 
   return (
     <Screen scroll>
+      <UserProfileStrip />
       <Text style={styles.h1}>Saved</Text>
-      <Text style={styles.sub}>Profiles you bookmarked from Discover.</Text>
       {loading ? <ActivityIndicator color={c.primary} /> : null}
       {err ? <InlineError message={err} onRetry={load} /> : null}
       {!loading && !err && cards.length === 0 ? (
         <EmptyState
           title="No saved profiles"
-          description="Use the heart on Discover cards or a profile to save people you want to revisit."
+          description="Save people from Discover with the heart."
         />
       ) : null}
       {!loading && cards.length > 0 ? (

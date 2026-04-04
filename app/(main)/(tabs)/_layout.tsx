@@ -5,6 +5,7 @@ import { AppState } from 'react-native';
 
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import { BrandLogo } from '@/src/components/BrandLogo';
+import { MainTabHeaderActions } from '@/src/components/MainTabHeaderActions';
 import { useInboxUnreadStore } from '@/src/store/inboxUnreadStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
 
@@ -24,6 +25,7 @@ export default function TabLayout() {
       tabBarInactiveTintColor: c.textSecondary,
       headerShown,
       headerTitle: () => <BrandLogo variant="header" />,
+      headerRight: () => <MainTabHeaderActions />,
       tabBarStyle: { backgroundColor: c.surface, borderTopColor: c.border },
     }),
     [c, headerShown],

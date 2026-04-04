@@ -395,10 +395,7 @@ export default function ProfileEditScreen() {
   return (
     <Screen scroll>
       <Text style={styles.h1}>Edit profile</Text>
-      <Text style={styles.hint}>
-        Update what caregivers or families see on Discover. Supporting and verification documents stay private and are not shown on your
-        public card.
-      </Text>
+      <Text style={styles.hint}>What others see on Discover. Verification documents stay private.</Text>
 
       <Text style={styles.section}>Photos</Text>
       <PhotoSlotsRow urls={photoUrls} maxSlots={4} slotSize={80} borderRadius={radius.lg} gap={spacing.md} />

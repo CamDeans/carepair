@@ -12,7 +12,7 @@ import type { CareAccessDto } from '@/src/lib/serverApi';
 import { useAuthStore } from '@/src/store/authStore';
 import { useCarePairUi } from '@/src/theme/CarePairUiContext';
 import { createTypographyStyles } from '@/src/theme/typography';
-import { layout, radius, spacing } from '@/src/theme/tokens';
+import { radius, spacing } from '@/src/theme/tokens';
 
 export default function SubscriptionScreen() {
   const { colors: c, fonts: f } = useCarePairUi();
@@ -99,8 +99,8 @@ export default function SubscriptionScreen() {
       Alert.alert(
         'Billing portal',
         hasBillingAccount
-          ? 'Stripe did not return a portal URL. Check server Stripe configuration.'
-          : 'Complete a subscription checkout first, or set EXPO_PUBLIC_STRIPE_PORTAL_URL for a static portal link.',
+          ? 'We could not open billing right now. Try again later or contact support.'
+          : 'Complete a subscription checkout first, then try again.',
       );
     } catch (e) {
       Alert.alert('Billing', e instanceof Error ? e.message : 'Failed to open portal.');
@@ -113,10 +113,7 @@ export default function SubscriptionScreen() {
     <Screen scroll>
       <Text style={styles.h1}>CarePair subscription</Text>
       <Text style={styles.price}>$19.99 / month</Text>
-      <Text style={styles.sub}>
-        Start checkout to subscribe, or open the customer portal to manage billing. CareSpace access follows your trial and subscription
-        status from the server.
-      </Text>
+      <Text style={styles.sub}>Subscribe or open the billing portal to manage your plan. CareSpace follows your trial and subscription.</Text>
       <View style={styles.box}>
         <Text style={styles.row}>CareSpace access: {access?.canUseCareSpace ? 'Yes' : 'No'}</Text>
         <Text style={styles.row}>Trial window: {trialActive ? 'Yes' : 'No'}</Text>
@@ -128,10 +125,6 @@ export default function SubscriptionScreen() {
         <Button title="Subscribe with Stripe" onPress={() => void openCheckout()} loading={checkoutLoading} />
         <Button title="Open billing portal" variant="secondary" onPress={() => void openPortal()} loading={portalLoading} />
       </View>
-      <Text style={[styles.sub, { fontSize: 13, marginTop: 0 }]}>
-        Stripe checkout creates your billing account for the customer portal. You can also configure EXPO_PUBLIC_STRIPE_PORTAL_URL as a
-        fallback link.
-      </Text>
       <Text style={styles.legal}>
         App Store / Play policies: confirm with counsel whether digital features require in-app purchase in your jurisdiction.
       </Text>

@@ -1,6 +1,6 @@
 /**
  * Visual spec: `brand/CAREPAIR-VISUAL-SPEC.md`. Mirrors `brand/tokens.json`.
- * Coral primary CTA, yellow accents, green success, cool neutrals.
+ * Coral primary CTA, soft coral/pink highlights (legacy keys brandYellow*), green success, cool neutrals.
  */
 export const colors = {
   screenBackground: '#FFFFFF',
@@ -12,9 +12,10 @@ export const colors = {
   textSecondary: '#7A8A99',
   textSubtle: '#B0BCC8',
   textDisabled: '#B0BCC8',
-  brandYellow: '#FFD84D',
-  brandYellowTint: '#FFF3BA',
-  brandYellowText: '#5A4200',
+  /** Accent marker / dots — soft coral (not yellow). */
+  brandYellow: '#FF8A6F',
+  brandYellowTint: '#FFE8E4',
+  brandYellowText: '#6B2418',
   success: '#3EC882',
   successTint: '#C0F0D8',
   successText: '#0A3D22',
@@ -22,7 +23,7 @@ export const colors = {
   accentCoralMid: '#FF8A6F',
   accentCoralTint: '#FFD4CB',
   accentCoralText: '#7A2010',
-  focusRing: '#FFD84D',
+  focusRing: '#FF7052',
   pressedBackground: '#F0F3F7',
   disabledBackground: '#EDF0F5',
   danger: '#C94A4A',
@@ -31,8 +32,8 @@ export const colors = {
   primary: '#FF7052',
   primaryMid: '#FF8A6F',
   primaryLight: '#FFD4CB',
-  /** Selected chips, soft highlights (yellow tint) */
-  primaryMuted: '#FFF3BA',
+  /** Selected chips, soft highlights */
+  primaryMuted: '#FFE8E4',
   /** Emphasis on light surfaces (same as text) */
   primaryDark: '#1A2733',
   accent: '#FF7052',
@@ -66,9 +67,9 @@ export const darkColors: CarePairPalette = {
   textSecondary: '#9CA8B8',
   textSubtle: '#6B7788',
   textDisabled: '#5A6575',
-  brandYellow: '#E8C44A',
-  brandYellowTint: '#3A3420',
-  brandYellowText: '#F5E6A8',
+  brandYellow: '#FF9A84',
+  brandYellowTint: '#3D2420',
+  brandYellowText: '#FFD4CB',
   success: '#4CD998',
   successTint: '#1A3D2E',
   successText: '#B8F0D4',
@@ -76,7 +77,7 @@ export const darkColors: CarePairPalette = {
   accentCoralMid: '#FFA48F',
   accentCoralTint: '#4A2820',
   accentCoralText: '#FFD4CB',
-  focusRing: '#E8C44A',
+  focusRing: '#FF8A72',
   pressedBackground: '#242D3D',
   disabledBackground: '#1F2836',
   danger: '#F08080',
@@ -84,7 +85,7 @@ export const darkColors: CarePairPalette = {
   primary: '#FF8A72',
   primaryMid: '#FFA48F',
   primaryLight: '#4A2820',
-  primaryMuted: '#3A3420',
+  primaryMuted: '#3D2420',
   primaryDark: '#E8EDF5',
   accent: '#FF8A72',
   accentLight: '#4A2820',

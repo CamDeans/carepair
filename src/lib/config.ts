@@ -20,6 +20,13 @@ export function getApiBaseUrl(): string {
   return process.env.EXPO_PUBLIC_API_URL ?? getExtra().apiBaseUrl ?? '';
 }
 
+/** Server origin without `/api` — for `/health` and similar non-API routes. */
+export function getApiServerOrigin(): string {
+  const base = getApiBaseUrl().replace(/\/$/, '');
+  if (!base) return '';
+  return base.replace(/\/api$/, '');
+}
+
 export function requireApiBase(): string {
   const b = getApiBaseUrl().replace(/\/$/, '');
   if (!b) throw new Error('Set EXPO_PUBLIC_API_URL to your server (e.g. http://IP:3001/api)');

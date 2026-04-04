@@ -60,9 +60,9 @@ export default function GateScreen() {
   if (!getApiBaseUrl()) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errTitle}>API URL required</Text>
+        <Text style={styles.errTitle}>Configuration needed</Text>
         <Text style={styles.errBody}>
-          Set EXPO_PUBLIC_API_URL in mobile/.env to your API root, e.g. http://YOUR_IP:3001/api
+          This build is not pointed at a CarePair server. Ask your administrator or check the setup guide for your team.
         </Text>
       </View>
     );

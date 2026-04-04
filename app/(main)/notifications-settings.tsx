@@ -1,5 +1,6 @@
+import { router, type Href } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Screen } from '@/src/components/ui/Screen';
 import * as api from '@/src/lib/serverApi';
@@ -53,7 +54,26 @@ export default function NotificationsSettingsScreen() {
         borderWidth: 1,
         borderColor: c.border,
         overflow: 'hidden',
+        shadowColor: c.shadowInk,
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 3,
       },
+      linkRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: layout.listRowMinHeight,
+        paddingVertical: spacing.sm + 2,
+        paddingHorizontal: spacing.lg,
+        marginBottom: spacing.md,
+        borderRadius: radius.lg,
+        borderWidth: 1,
+        borderColor: c.border,
+        backgroundColor: c.surface,
+      },
+      linkChev: { fontSize: 20, color: c.textSubtle, fontWeight: '300' },
       row: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -71,9 +91,15 @@ export default function NotificationsSettingsScreen() {
   return (
     <Screen scroll>
       <Text style={styles.h1}>Notifications</Text>
-      <Text style={styles.sub}>
-        Push preferences are saved to your account. Messages, matches, and shift updates each have their own toggle.
-      </Text>
+      <Text style={styles.sub}>Control push alerts for your account.</Text>
+      <Pressable
+        style={styles.linkRow}
+        accessibilityRole="button"
+        accessibilityLabel="Open inbox"
+        onPress={() => router.push('/messages' as Href)}>
+        <Text style={styles.title}>Open inbox</Text>
+        <Text style={styles.linkChev}>›</Text>
+      </Pressable>
       {saving ? <ActivityIndicator color={c.primary} style={{ marginBottom: spacing.sm }} /> : null}
       <View style={styles.card}>
         <View style={styles.row}>
@@ -84,8 +110,8 @@ export default function NotificationsSettingsScreen() {
               setMessages(v);
               void patch({ messages: v });
             }}
-            trackColor={{ true: c.primaryMuted }}
-            thumbColor={c.primary}
+            trackColor={{ true: c.primaryMuted, false: c.border }}
+            thumbColor={c.surface}
           />
         </View>
         <View style={styles.row}>
@@ -96,8 +122,8 @@ export default function NotificationsSettingsScreen() {
               setShifts(v);
               void patch({ shifts: v });
             }}
-            trackColor={{ true: c.primaryMuted }}
-            thumbColor={c.primary}
+            trackColor={{ true: c.primaryMuted, false: c.border }}
+            thumbColor={c.surface}
           />
         </View>
         <View style={styles.row}>
@@ -108,8 +134,8 @@ export default function NotificationsSettingsScreen() {
               setMatches(v);
               void patch({ matches: v });
             }}
-            trackColor={{ true: c.primaryMuted }}
-            thumbColor={c.primary}
+            trackColor={{ true: c.primaryMuted, false: c.border }}
+            thumbColor={c.surface}
           />
         </View>
         <View style={[styles.row, { borderBottomWidth: 0 }]}>
@@ -120,8 +146,8 @@ export default function NotificationsSettingsScreen() {
               setMarketing(v);
               void patch({ marketing: v });
             }}
-            trackColor={{ true: c.primaryMuted }}
-            thumbColor={c.primary}
+            trackColor={{ true: c.primaryMuted, false: c.border }}
+            thumbColor={c.surface}
           />
         </View>
       </View>

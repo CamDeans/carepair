@@ -68,13 +68,13 @@ export default function SignupScreen() {
   const openTerms = () => {
     const u = getTermsUrl();
     if (u) void Linking.openURL(u);
-    else Alert.alert('Terms', 'Add EXPO_PUBLIC_TERMS_URL to your app config (see mobile/.env.example).');
+    else Alert.alert('Terms', 'Terms link is not available in this build.');
   };
 
   const openPrivacy = () => {
     const u = getPrivacyUrl();
     if (u) void Linking.openURL(u);
-    else Alert.alert('Privacy', 'Add EXPO_PUBLIC_PRIVACY_URL to your app config (see mobile/.env.example).');
+    else Alert.alert('Privacy', 'Privacy link is not available in this build.');
   };
 
   const onSubmit = async () => {

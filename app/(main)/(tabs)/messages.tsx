@@ -2,6 +2,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { UserProfileStrip } from '@/src/components/UserProfileStrip';
 import { EmptyState } from '@/src/components/ui/EmptyState';
 import { ProfilePhoto } from '@/src/components/ui/ProfilePhoto';
 import { Screen } from '@/src/components/ui/Screen';
@@ -19,7 +20,7 @@ export default function MessagesScreen() {
   const styles = useMemo(() => {
     const t = createTypographyStyles(c, f);
     return StyleSheet.create({
-      h1: { ...t.screenTitle, marginBottom: layout.sectionGap - spacing.sm },
+      h1: { ...t.screenTitle, marginBottom: spacing.md },
       row: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -62,6 +63,7 @@ export default function MessagesScreen() {
 
   return (
     <Screen scroll>
+      <UserProfileStrip />
       <Text style={styles.h1}>Inbox</Text>
       {loading ? <ActivityIndicator color={c.primary} style={{ marginVertical: spacing.md }} /> : null}
       {rows.map((t) => (
