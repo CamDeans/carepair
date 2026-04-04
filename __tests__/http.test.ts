@@ -28,6 +28,30 @@ describe('httpJson', () => {
     await expect(httpJson('https://example.com/x', { timeoutMs: 5000 })).rejects.toThrow('Unauthorized');
   });
 
+  it('attaches requestId and verifyError from error JSON', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      text: async () =>
+        JSON.stringify({
+          message: 'Google token verification failed',
+          requestId: 'req-abc',
+          verifyError: 'Wrong recipient',
+        }),
+    });
+
+    try {
+      await httpJson('https://example.com/x', { timeoutMs: 5000 });
+    } catch (e) {
+      expect(e).toBeInstanceOf(ApiError);
+      const err = e as ApiError;
+      expect(err.meta?.requestId).toBe('req-abc');
+      expect(err.meta?.verifyError).toBe('Wrong recipient');
+      return;
+    }
+    throw new Error('expected throw');
+  });
+
   it('throws on invalid JSON', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,

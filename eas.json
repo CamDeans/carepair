@@ -19,7 +19,15 @@
       "env": {
         "EAS_PROJECT_ID": "780ad853-e5b6-441d-985e-6f346ec16060",
         "EAS_BUILD_NO_EXPO_GO_WARNING": "true",
-        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "EXPO_PUBLIC_VERBOSE_CLIENT_LOGS": "1"
+      }
+    },
+    "internal-testflight": {
+      "extends": "production",
+      "distribution": "store",
+      "env": {
+        "EXPO_PUBLIC_VERBOSE_CLIENT_LOGS": "1"
       }
     },
     "production": {

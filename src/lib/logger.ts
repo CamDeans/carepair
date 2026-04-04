@@ -1,14 +1,18 @@
 /**
- * Logs only in development. Never pass tokens or passwords as arguments.
+ * Logs in development, or in release builds when `EXPO_PUBLIC_VERBOSE_CLIENT_LOGS=1` (internal / TestFlight debugging).
+ * Never pass tokens or passwords as arguments.
  */
+const verboseClientLogs = process.env.EXPO_PUBLIC_VERBOSE_CLIENT_LOGS === '1';
+const logToConsole = __DEV__ || verboseClientLogs;
+
 export const logger = {
   debug: (...args: unknown[]) => {
-    if (__DEV__) console.log('[CarePair]', ...args);
+    if (logToConsole) console.log('[CarePair]', ...args);
   },
   warn: (...args: unknown[]) => {
-    if (__DEV__) console.warn('[CarePair]', ...args);
+    if (logToConsole) console.warn('[CarePair]', ...args);
   },
   error: (...args: unknown[]) => {
-    if (__DEV__) console.error('[CarePair]', ...args);
+    if (logToConsole) console.error('[CarePair]', ...args);
   },
 };

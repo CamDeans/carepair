@@ -1,11 +1,18 @@
 import { API_REQUEST_TIMEOUT_MS } from '@/src/constants/app';
 import { logger } from '@/src/lib/logger';
 
+export type ApiErrorMeta = {
+  requestId?: string;
+  /** Present when API sets GOOGLE_AUTH_RETURN_VERIFY_ERROR (staging). */
+  verifyError?: string;
+};
+
 export class ApiError extends Error {
   constructor(
     message: string,
     public readonly status?: number,
     public readonly cause?: unknown,
+    public readonly meta?: ApiErrorMeta,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -39,7 +46,13 @@ export async function httpJson<T>(url: string, options: HttpJsonOptions = {}): P
         typeof data === 'object' && data !== null && 'message' in data && typeof (data as { message: unknown }).message === 'string'
           ? (data as { message: string }).message
           : `Request failed (${res.status})`;
-      throw new ApiError(msg, res.status);
+      const meta: ApiErrorMeta = {};
+      if (typeof data === 'object' && data !== null) {
+        const o = data as Record<string, unknown>;
+        if (typeof o.requestId === 'string' && o.requestId.trim()) meta.requestId = o.requestId.trim();
+        if (typeof o.verifyError === 'string' && o.verifyError.trim()) meta.verifyError = o.verifyError.trim();
+      }
+      throw new ApiError(msg, res.status, undefined, Object.keys(meta).length ? meta : undefined);
     }
 
     return (data ?? (undefined as T)) as T;

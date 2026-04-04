@@ -5,6 +5,9 @@ import { Alert, Platform } from 'react-native';
 
 import { Button } from '@/src/components/ui/Button';
 import { getGoogleAndroidClientId, getGoogleIosClientId, getGoogleWebClientId } from '@/src/lib/config';
+import { ApiError } from '@/src/lib/http';
+import { logger } from '@/src/lib/logger';
+import { reportError } from '@/src/lib/reportError';
 import { useAuthStore } from '@/src/store/authStore';
 import type { UserRole } from '@/src/types/models';
 
@@ -43,9 +46,36 @@ function GoogleSignInButtonImpl({ flow, signupRole = 'family', disabled = false 
   });
 
   useEffect(() => {
-    if (response?.type !== 'success') return;
+    if (!response) return;
+
+    if (response.type === 'error') {
+      const p = response.params as Record<string, string | undefined>;
+      const code = p.error ?? p.error_code;
+      const desc = p.error_description;
+      const detail = [code, desc].filter(Boolean).join(' — ') || 'Authorization failed';
+      logger.warn('Google OAuth provider error', { flow, platform: Platform.OS, code, desc });
+      reportError(new Error(`Google OAuth: ${detail}`), {
+        flow,
+        platform: Platform.OS,
+        oauthCode: code,
+        oauthDescription: desc,
+      });
+      Alert.alert('Google sign-in', `${detail}\n\nIf this persists, try again or use email sign-in.`);
+      return;
+    }
+
+    if (response.type !== 'success') return;
+
     const idToken = response.params.id_token;
-    if (typeof idToken !== 'string' || idToken.length < 20) return;
+    if (typeof idToken !== 'string' || idToken.length < 20) {
+      logger.warn('Google sign-in missing id_token in success response', { flow, platform: Platform.OS });
+      reportError(new Error('Google sign-in: missing id_token'), { flow, platform: Platform.OS });
+      Alert.alert(
+        'Google sign-in',
+        'No ID token returned. Check Google client IDs (web / iOS / Android) in your build configuration.',
+      );
+      return;
+    }
     const dedupe = `${idToken.slice(0, 48)}:${flow}:${signupRole}`;
     if (handledKey.current === dedupe) return;
     handledKey.current = dedupe;
@@ -59,7 +89,27 @@ function GoogleSignInButtonImpl({ flow, signupRole = 'family', disabled = false 
         router.replace('/');
       } catch (e) {
         handledKey.current = null;
-        Alert.alert('Google sign-in', e instanceof Error ? e.message : 'Failed');
+        const ref =
+          e instanceof ApiError && e.meta?.requestId
+            ? `\n\nReference: ${e.meta.requestId}\n(Match this in server logs.)`
+            : '';
+        const verifyHint =
+          e instanceof ApiError && e.meta?.verifyError ? `\n\nServer: ${e.meta.verifyError}` : '';
+        const message =
+          e instanceof Error ? `${e.message}${verifyHint}${ref}` : `Failed${ref}`;
+        logger.warn('Google sign-in API error', {
+          flow,
+          platform: Platform.OS,
+          requestId: e instanceof ApiError ? e.meta?.requestId : undefined,
+          verifyError: e instanceof ApiError ? e.meta?.verifyError : undefined,
+        });
+        reportError(e instanceof Error ? e : new Error(String(e)), {
+          flow,
+          platform: Platform.OS,
+          requestId: e instanceof ApiError ? e.meta?.requestId : undefined,
+          googleVerifyError: e instanceof ApiError ? e.meta?.verifyError : undefined,
+        });
+        Alert.alert('Google sign-in', message);
       }
     })();
   }, [response, flow, signupRole, loginWithGoogleIdToken]);
